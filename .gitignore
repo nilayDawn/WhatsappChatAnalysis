@@ -1,0 +1,31 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+*.egg-info/
+build/
+dist/
+wheels/
+
+# Virtual environments
+.venv/
+venv/
+
+# Jupyter / notebook
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Project data (optional)
+*.zip
+*.vcf
+*.webp
+*.png
+*.jpg
+*.jpeg
+*.txt
+
+#Chats
+Chats/
