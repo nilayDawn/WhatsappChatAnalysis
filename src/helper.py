@@ -44,7 +44,7 @@ def remove_stopwords(message):
     return " ".join(y)
 
 def create_wordcloud(selected_user,df):
-    with open('src/stopwords_list.txt', 'r') as f:
+    with open("src/full_stopword.txt", 'r') as f:
         stopwords = f.read().splitlines()
     if selected_user != 'All':
         df = df[df['Sender'] == selected_user]
@@ -70,17 +70,29 @@ def most_common_words(selected_user, df):
     # 4. Tokenize: Convert each message string into a list of words
     temp['Word_List'] = temp['Message'].apply(lambda msg: str(msg).split())
 
-    # 5. Explode: Create a new row for every single word, keeping the Sender attached
+    # 5. Explode: Create a new row for every single word
     words_df = temp.explode('Word_List')
     
     # Clean up empty rows
     words_df = words_df.dropna(subset=['Word_List'])
     
+    # Check if empty to avoid errors
     if words_df.empty:
-         return pd.DataFrame(columns=['Word', 'Count', 'Sender'])
+         empty_top20 = pd.DataFrame(columns=['Word', 'Count', 'Sender'])
+         empty_all = pd.DataFrame(columns=['TopWords', 'Count', 'Sender'])
+         return empty_top20, empty_all
 
+    # --- NEW: Create the unrestricted DataFrame ---
+    # Group ALL words by Word and Sender without any limits
+    all_words_df = words_df.groupby(['Word_List', 'Sender']).size().reset_index(name='Count')
+    all_words_df = all_words_df.rename(columns={'Word_List': 'TopWords'})
+    # Sort it so the highest counts are at the top
+    all_words_df = all_words_df.sort_values(by='Count', ascending=False).reset_index(drop=True)
+    all_words_df = all_words_df.head(50)  # Limit to top 20 for display purposes
+
+
+    # --- EXISTING: Create the Top 20 DataFrame ---
     # 6. Find the top 20 most frequent words overall 
-    # (We limit to 20 so the chart doesn't become impossibly tall)
     top_words = words_df['Word_List'].value_counts().head(20).index.tolist()
 
     # 7. Filter the exploded dataframe to ONLY include those top words
@@ -90,7 +102,8 @@ def most_common_words(selected_user, df):
     most_common_df = top_words_df.groupby(['Word_List', 'Sender']).size().reset_index(name='Count')
     most_common_df = most_common_df.rename(columns={'Word_List': 'Word'})
 
-    return most_common_df
+    # Return BOTH DataFrames
+    return most_common_df, all_words_df
 
 def emoji_helper(selected_user, df):
     # 1. Extract emojis as a list for every single message row

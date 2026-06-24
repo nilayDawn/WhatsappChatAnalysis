@@ -21,6 +21,9 @@ def preprocess(text:str) -> pd.DataFrame:
 
     df = pd.DataFrame(matches, columns=['Date', 'Time', 'Sender', 'Message'])   
 
+    #keep only the rows where 'Sender' name is <= 5 words
+    df = df[df['Sender'].str.split().str.len() <= 5]
+
     df['DateTime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='mixed', dayfirst=True)
 
     df['only_date'] = df['DateTime'].dt.date

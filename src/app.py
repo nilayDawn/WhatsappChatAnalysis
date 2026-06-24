@@ -94,7 +94,7 @@ if uploaded_file is not None:
         st.pyplot(fig)
 
         # most common words
-        most_common_df = helper.most_common_words(selected_user, df)
+        most_common_df, all_words_df = helper.most_common_words(selected_user, df)
 
         if not most_common_df.empty:
             if selected_user == 'All':
@@ -123,6 +123,11 @@ if uploaded_file is not None:
 
             # Display the interactive chart
             st.plotly_chart(fig, use_container_width=True)
+
+            # Display the dataframe
+            st.title("Most Common Words Data")
+            st.dataframe(all_words_df)
+            
     
         else:
             st.info("No words found. This chat might be empty or entirely media files.")
