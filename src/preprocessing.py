@@ -21,9 +21,15 @@ def preprocess(text:str) -> pd.DataFrame:
 
     df = pd.DataFrame(matches, columns=['Date', 'Time', 'Sender', 'Message'])   
 
+    # Drops any row containing these phrases, ignoring uppercase/lowercase
+    df = df[~df['Message'].str.contains('This message was deleted|You deleted this message', case=False, na=False)]
+
     # Strip hidden spaces/newlines, then remove rows that start with '<' AND end with '>'
     # Drops any row where a message contains a '<' followed by ANY text, and then a '>'
     df['Message'] = df['Message'].str.replace(r'<.*?>', '', regex=True)
+
+    # Keep only messages that have 30 words or fewer
+    df = df[df['Message'].astype(str).str.split().str.len() <= 30]
 
     # Keep only rows where the message is NOT an empty string
     df = df[df['Message'].str.strip() != ""]
