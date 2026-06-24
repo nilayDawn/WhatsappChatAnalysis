@@ -117,3 +117,79 @@ def emoji_helper(selected_user, df):
     
     return emoji_counts
 
+def monthly_timeline(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['Sender'] == selected_user]
+
+    timeline = df.groupby(['year', 'month_num', 'month']).count()['Message'].reset_index()
+
+    time = []
+    for i in range(timeline.shape[0]):
+        time.append(timeline['month'][i] + "-" + str(timeline['year'][i]))
+
+    timeline['time'] = time
+
+    return timeline
+
+def daily_timeline(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['Sender'] == selected_user]
+
+    daily_timeline = df.groupby('only_date').count()['Message'].reset_index()
+
+    return daily_timeline
+
+def week_activity_map(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['Sender'] == selected_user]
+
+    return df['day_name'].value_counts()
+
+def month_activity_map(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['Sender'] == selected_user]
+
+    return df['month'].value_counts()
+
+def activity_heatmap(selected_user,df):
+
+    if selected_user != 'All':
+        df = df[df['Sender'] == selected_user]
+
+    # Ensure seaborn heatmap doesn't crash on empty pivots
+    if df.empty:
+        days = [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+        ]
+        periods = []
+        for h in range(0, 24):
+            if h == 23:
+                periods.append('23-00')
+            elif h == 0:
+                periods.append('00-1')
+            else:
+                periods.append(f'{h}-{h + 1}')
+
+
+        user_heatmap = pd.DataFrame(0, index=days, columns=periods)
+        return user_heatmap
+
+    user_heatmap = df.pivot_table(index='day_name', columns='period', values='Message', aggfunc='count').fillna(0)
+
+    return user_heatmap
+
+
+
+
+
+

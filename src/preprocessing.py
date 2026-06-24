@@ -23,11 +23,25 @@ def preprocess(text:str) -> pd.DataFrame:
 
     df['DateTime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='mixed', dayfirst=True)
 
-    df["Year"] = df["DateTime"].dt.year
-    df["Month"] = df["DateTime"].dt.month_name()
-    df["Day"] = df["DateTime"].dt.day
-    df["Hour"] = df["DateTime"].dt.hour
-    df["Minute"] = df["DateTime"].dt.minute    
+    df['only_date'] = df['DateTime'].dt.date
+    df['year'] = df['DateTime'].dt.year
+    df['month_num'] = df['DateTime'].dt.month
+    df['month'] = df['DateTime'].dt.month_name()
+    df['day'] = df['DateTime'].dt.day
+    df['day_name'] = df['DateTime'].dt.day_name()
+    df['hour'] = df['DateTime'].dt.hour
+    df['minute'] = df['DateTime'].dt.minute
+
+    period = []
+    for hour in df[['day_name', 'hour']]['hour']:
+        if hour == 23:
+            period.append(str(hour) + "-" + str('00'))
+        elif hour == 0:
+            period.append(str('00') + "-" + str(hour + 1))
+        else:
+            period.append(str(hour) + "-" + str(hour + 1))
+
+    df['period'] = period
 
     return df
 

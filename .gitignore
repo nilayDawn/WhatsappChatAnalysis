@@ -31,3 +31,4 @@ venv/
 Chats/
 
 notebook/research.ipynb
+notebook/**
