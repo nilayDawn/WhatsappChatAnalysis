@@ -25,7 +25,6 @@ venv/
 *.png
 *.jpg
 *.jpeg
-*.txt
 
 #Chats
 Chats/

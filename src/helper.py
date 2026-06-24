@@ -56,7 +56,7 @@ def create_wordcloud(selected_user,df):
         df = df[df['Sender'] == selected_user]
     temp = df[df['Message'] != '<Media omitted>\n']
     
-    wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
+    wc = WordCloud(width=800, height=450, min_font_size=10, background_color='#0f172a', colormap='plasma')
     temp['Message'] = temp['Message'].apply(remove_stopwords)
     df_wc = wc.generate(temp['Message'].str.cat(sep=" "))
     return df_wc
@@ -93,7 +93,7 @@ def create_wordcloud_bigrams(selected_user, df):
         return None 
     
     # 5. Initialize the WordCloud
-    wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
+    wc = WordCloud(width=800, height=450, min_font_size=10, background_color='#0f172a', colormap='plasma')
     
     # 6. Generate the word cloud directly from the frequency dictionary!
     df_wc = wc.generate_from_frequencies(bigram_frequencies)
