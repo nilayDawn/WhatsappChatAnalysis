@@ -4,6 +4,12 @@ import pandas as pd
 from collections import Counter
 import emoji
 
+
+def create_bigrams(text):
+        words = str(text).split()
+        # Loop through the list and join word[i] with word[i+1]
+        return [f"{words[i]} {words[i+1]}" for i in range(len(words)-1)]
+
 def fetch_stats(selected_user,df):
     if selected_user != 'All':
         df = df[df['Sender'] == selected_user]
@@ -35,7 +41,7 @@ def most_busy_user(df):
     return x, df
 
 def remove_stopwords(message):
-    with open('src/stopwords_list.txt', 'r') as f:
+    with open('src/full_stopword.txt', 'r') as f:
         stopwords = f.read().splitlines()
     y = []
     for word in message.lower().split():
@@ -55,6 +61,45 @@ def create_wordcloud(selected_user,df):
     df_wc = wc.generate(temp['Message'].str.cat(sep=" "))
     return df_wc
 
+from wordcloud import WordCloud
+import pandas as pd
+
+def create_wordcloud_bigrams(selected_user, df):
+    # Load stopwords
+    with open("src/full_stopword.txt", 'r') as f:
+        stopwords = f.read().splitlines()
+        
+    # Filter by user
+    temp = df[df['Message'] != '<Media omitted>\n'].copy()
+    if selected_user != 'All':
+        temp = temp[temp['Sender'] == selected_user]
+        
+    # 1. Clean the messages
+    temp['Message'] = temp['Message'].apply(remove_stopwords)
+    
+    # 2. Create the bigrams (This returns a list of bigrams for each row)
+    temp['Bigram_List'] = temp['Message'].apply(create_bigrams) 
+    
+    # 3. Explode the lists into individual rows so Pandas can count them
+    exploded_bigrams = temp.explode('Bigram_List')['Bigram_List'].dropna()
+    
+    
+    # 4. Get the counts and convert them straight into a dictionary
+    # Example format: {'happy birthday': 45, 'good morning': 30}
+    bigram_frequencies = exploded_bigrams.value_counts().to_dict()
+    
+    # Handle the edge case where the chat is empty or has no valid bigrams
+    if not bigram_frequencies:
+        return None 
+    
+    # 5. Initialize the WordCloud
+    wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
+    
+    # 6. Generate the word cloud directly from the frequency dictionary!
+    df_wc = wc.generate_from_frequencies(bigram_frequencies)
+    
+    return df_wc
+
 def most_common_words(selected_user, df):
     # 1. Filter out media messages and create a clean copy
     temp = df[df['Message'] != '<Media omitted>\n'].copy()
@@ -68,7 +113,7 @@ def most_common_words(selected_user, df):
     temp['Message'] = temp['Message'].apply(remove_stopwords)
 
     # 4. Tokenize: Convert each message string into a list of words
-    temp['Word_List'] = temp['Message'].apply(lambda msg: str(msg).split())
+    temp['Word_List'] = temp['Message'].apply(create_bigrams)  # Using bigrams instead of single words
 
     # 5. Explode: Create a new row for every single word
     words_df = temp.explode('Word_List')
@@ -200,9 +245,3 @@ def activity_heatmap(selected_user,df):
     user_heatmap = df.pivot_table(index='day_name', columns='period', values='Message', aggfunc='count').fillna(0)
 
     return user_heatmap
-
-
-
-
-
-

@@ -87,7 +87,7 @@ if uploaded_file is not None:
 
         # WordCloud
         st.title("Frequently Used Words")
-        df_wc = helper.create_wordcloud(selected_user, df)
+        df_wc = helper.create_wordcloud_bigrams(selected_user, df)
         fig, ax = plt.subplots()
         ax.imshow(df_wc, interpolation="bilinear")
         ax.axis("off")

@@ -21,6 +21,13 @@ def preprocess(text:str) -> pd.DataFrame:
 
     df = pd.DataFrame(matches, columns=['Date', 'Time', 'Sender', 'Message'])   
 
+    # Strip hidden spaces/newlines, then remove rows that start with '<' AND end with '>'
+    # Drops any row where a message contains a '<' followed by ANY text, and then a '>'
+    df['Message'] = df['Message'].str.replace(r'<.*?>', '', regex=True)
+
+    # Keep only rows where the message is NOT an empty string
+    df = df[df['Message'].str.strip() != ""]
+
     #keep only the rows where 'Sender' name is <= 5 words
     df = df[df['Sender'].str.split().str.len() <= 5]
 
