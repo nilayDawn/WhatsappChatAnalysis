@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from preprocessing import preprocess
-
+import helper
 
 
 st.set_page_config(layout="wide")
@@ -29,7 +30,7 @@ if uploaded_file is not None:
     user_list = df["Sender"].unique().tolist()
     user_list.sort()
 
-    st.sidebar.selectbox(
+    selected_user = st.sidebar.selectbox(
         "Select a User to Filter Messages",
         options=["All"] + user_list,
         index=0,
@@ -37,6 +38,44 @@ if uploaded_file is not None:
     )
 
     if st.sidebar.button("Show Analysis"):
+
+        num_messages, num_words, num_urls, num_media_messages = helper.fetch_stats(selected_user, df)
+
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.header("Total Messages")
+            st.subheader(f"{selected_user}")
+            st.title(num_messages)
+        with col2:
+            st.header("Total Words")
+            st.subheader(f"{selected_user}")
+            st.title(num_words)
+        with col3:
+            st.header("Total Media Messages")
+            st.subheader(f"{selected_user}")
+            st.title(num_media_messages)
+        with col4:
+            st.header("Total Links Shared")
+            st.subheader(f"{selected_user}")
+            st.title(num_urls)
+
+        #Finding busiest users in the group(Group Level)
+        if selected_user == 'All':
+            st.title("Most Busy Users")
+            x, new_df = helper.most_busy_user(df)
+            fig, ax = plt.subplots()
+            col1, col2 = st.columns(2)
+            with col1:
+                ax.bar(x.index, x.values, color='orange')
+                plt.xticks(rotation='vertical')
+                st.pyplot(fig)
+            with col2:
+                st.dataframe(new_df)
+
+        #WordCloud
+        st.title("Frequently Used Words")
+        df_wc = helper.create_wordcloud(selected_user, df)
+        fig, ax = plt.subplots()
+        ax.imshow(df_wc, interpolation='bilinear')
+        ax.axis('off')
+        st.pyplot(fig)

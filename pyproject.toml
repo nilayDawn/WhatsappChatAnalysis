@@ -7,6 +7,9 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.138.0",
     "ipykernel>=7.3.0",
+    "matplotlib>=3.11.0",
     "pandas>=3.0.3",
     "streamlit>=1.58.0",
+    "urlextract>=1.9.0",
+    "wordcloud>=1.9.6",
 ]
