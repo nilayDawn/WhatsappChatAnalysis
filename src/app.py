@@ -1,22 +1,14 @@
+import sys
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import plotly.express as px
-import seaborn as sns
-import networkx as nx
+
+# Ensure the src directory is on the path when running via `streamlit run src/app.py`
+sys.path.insert(0, "src")
 
 from preprocessing import preprocess
-import helper
-import chat_award
-import reply_speed
-import reply_network
-import chat_streak
-import roast_mode
-import ghost_mode
-
 import styles
 
-# Initialize page settings
+# Page configuration
 st.set_page_config(
     page_title="WhatsApp Chat Analyzer",
     page_icon="💬",
@@ -24,997 +16,281 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Load custom CSS styles
 styles.load_css()
 
-# Render custom header UI
-styles.render_header()
+# Page definitions
+CORE_PAGES = {
+    "📊 Who Talks the Most?":  "overview",
+    "🔤 Slang & Catchphrases": "vocabulary",
+    "🎭 Emoji & Vibe Check":   "emoji_analysis",
+    "📈 When Are We Active?":  "timelines",
+}
 
-# Sidebar control panel header
-st.sidebar.markdown(
-    """
-<div style="padding: 10px 0; margin-bottom: 20px;">
-    <h2 style="margin: 0; font-size: 1.6rem; font-weight: 800; color: #a5b4fc; display: flex; align-items: center; gap: 8px;">
-        ⚡ Control Panel
-    </h2>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+GROUP_PAGES = {
+    "🏆 Chat Awards":          "awards",
+    "⚡ Response Time":         "response_time",
+    "🕸️ Reply Network":         "network",
+    "🔥 Chat Streaks":          "streaks",
+    "😂 Roast Report":          "roast",
+    "👻 Ghosting Analysis":     "ghosting",
+    "🌙 Sleep Deprivation":     "sleep",
+}
 
+# Initialize session state for uploaded file
+if "uploaded_file" not in st.session_state:
+    st.session_state["uploaded_file"] = None
 
-# Cache Preprocessing function to avoid re-running on every interaction
+# Preprocessing cache
 @st.cache_data(show_spinner=False)
 def cached_preprocess(text):
     return preprocess(text)
 
 
-# 1. File Uploader widget in the UI
-uploaded_file = st.file_uploader("Upload your WhatsApp Chat (.txt) file", type=["txt"])
+@st.cache_data(show_spinner=False)
+def get_users(df):
+    users = df["Sender"].unique().tolist()
+    users.sort()
+    return users
 
-if uploaded_file is None:
-    # If no file is uploaded, show the gorgeous onboarding guide
-    styles.render_instructions()
-    st.info(
-        "💡 **Awaiting chat upload...** Please select your WhatsApp chat log to begin."
-    )
-else:
-    # Read uploaded file bytes and decode to text
-    content = uploaded_file.getvalue()
-    text = content.decode("utf-8-sig")
 
-    # Call preprocessing helper
-    df = cached_preprocess(text)
+# ─────────────────────────────────────────────────────────────────────────────
+# State: No File Uploaded (Onboarding / Landing Page)
+# ─────────────────────────────────────────────────────────────────────────────
+if st.session_state["uploaded_file"] is None:
+    # Sidebar: Locked Nav info
+    with st.sidebar:
+        st.markdown(
+            """
+            <div style="padding:16px 0 24px; text-align: center;">
+                <div style="font-size:2rem; margin-bottom:4px;">💬</div>
+                <h2 style="margin:0; font-size:1.3rem; font-weight:800;
+                           background:linear-gradient(to right,#a5b4fc,#818cf8);
+                           -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                    WA Analyzer
+                </h2>
+                <p style="color:#475569; font-size:0.75rem; margin:4px 0 0;">
+                    Chat Intelligence Dashboard
+                </p>
+            </div>
+            <div style="background: rgba(30,41,59,0.3); border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.05); text-align: center; margin-top: 30px;">
+                <div style="font-size: 1.5rem; margin-bottom: 8px;">🔒</div>
+                <div style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">Navigation Locked</div>
+                <p style="font-size: 0.75rem; color: #475569; margin: 0;">Upload a WhatsApp chat file in the main area to unlock dashboard features.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    # Success feedback and overall parse statistics
+    # Main Page UI decoration
     st.markdown(
-        '<div class="section-title">📁 Uploaded Chat Session</div>',
+        """
+        <div class="welcome-hero">
+            <div class="hero-badge">⚡ INSTANT CONVERSATION INSIGHTS</div>
+            <h1>WhatsApp Chat Analyzer</h1>
+            <p>Transform your plain text WhatsApp chat logs into a highly interactive visual dashboard. Explore communication timelines, response dynamics, relationship streaks, sleep reports, and AI roast profiles.</p>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
-    col_stat1, col_stat2 = st.columns([1, 3])
-    with col_stat1:
+    col_upload, col_guide = st.columns([1, 1], gap="large")
+
+    with col_upload:
         st.markdown(
-            f"""
-        <div class="metric-card" style="margin: 0; height: 100%; display: flex; flex-direction: column; justify-content: center;">
-            <div class="metric-icon" style="font-size: 2rem;">📊</div>
-            <div class="metric-label" style="font-size: 0.85rem;">Total Messages Parsed</div>
-            <div class="metric-value" style="font-size: 2.5rem;">{len(df):,}</div>
-            <div class="metric-user">💬 Chat Preprocessing Complete</div>
-        </div>
-        """,
+            """
+            <div class="upload-container">
+                <div style="font-size: 3rem; margin-bottom: 12px;">📤</div>
+                <div style="font-weight: 700; font-size: 1.25rem; color: #a5b4fc; margin-bottom: 8px;">Upload Chat Log</div>
+                <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 24px;">Drag and drop your exported <b>.txt</b> file below</p>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
-    with col_stat2:
-        with st.expander("🔍 View Raw Parsed Dataframe", expanded=False):
-            st.dataframe(df, use_container_width=True)
+        uploaded = st.file_uploader(
+            "Upload Chat (.txt)",
+            type=["txt"],
+            key="initial_uploader",
+            label_visibility="collapsed",
+        )
+        if uploaded is not None:
+            st.session_state["uploaded_file"] = uploaded
+            st.rerun()
 
-    # Fetch Unique users for select box
-    # cache user list
-    @st.cache_data(show_spinner=False)
-    def get_users(df):
-        users = df["Sender"].unique().tolist()
-        users.sort()
-        return users
+    with col_guide:
+        styles.render_instructions()
 
-    user_list = get_users(df)
+    # Feature showcase grid
+    st.markdown(
+        """
+        <div style="text-align: center; margin-top: 50px; margin-bottom: 20px;">
+            <h3 style="font-weight: 800; font-size: 1.5rem; background: linear-gradient(to right, #a5b4fc, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✨ Unlock Advanced Analytics</h3>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-card-icon">🏆</div>
+                <div class="feature-card-title">Chat Awards</div>
+                <div class="feature-card-desc">Recognize individual personalities: the Spammer, the Emoji King, or the Link Sharer.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-icon">⚡</div>
+                <div class="feature-card-title">Response Times</div>
+                <div class="feature-card-desc">Calculate average reply latency, longest ignore durations, and response rankings.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-icon">🕸️</div>
+                <div class="feature-card-title">Reply Network</div>
+                <div class="feature-card-desc">Map out and visualize direct replies in a dynamic interactive node connection graph.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-icon">🌙</div>
+                <div class="feature-card-title">Circadian Sleep</div>
+                <div class="feature-card-desc">Discover midnight activity levels, estimated sleep debt, night owls, and demon hours.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.stop()
 
-    selected_user = st.sidebar.selectbox(
-        "Select a User to Filter Messages",
+
+# ─────────────────────────────────────────────────────────────────────────────
+# State: File Uploaded (Dashboard Mode)
+# ─────────────────────────────────────────────────────────────────────────────
+uploaded_file = st.session_state["uploaded_file"]
+
+content = uploaded_file.getvalue()
+text = content.decode("utf-8-sig")
+df = cached_preprocess(text)
+user_list = get_users(df)
+
+# Sidebar navigation & filters
+with st.sidebar:
+    st.markdown(
+        """
+<div style="padding:16px 0 24px;">
+    <div style="font-size:2rem; text-align:center; margin-bottom:4px;">💬</div>
+    <h2 style="text-align:center; margin:0; font-size:1.3rem; font-weight:800;
+               background:linear-gradient(to right,#a5b4fc,#818cf8);
+               -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+        WA Analyzer
+    </h2>
+    <p style="text-align:center; color:#475569; font-size:0.75rem; margin:4px 0 0;">
+        Chat Intelligence Dashboard
+    </p>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        "<div style='font-size:0.8rem; font-weight:600; color:#94a3b8; margin-bottom:6px;'>👤 Filter by User</div>",
+        unsafe_allow_html=True,
+    )
+    selected_user = st.selectbox(
+        "Select User",
         options=["All"] + user_list,
         index=0,
         key="user_filter",
+        label_visibility="collapsed",
     )
 
-    st.sidebar.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-    if st.sidebar.button("Show Analysis"):
-        st.session_state["show_analysis"] = True
+    st.markdown("<hr style='border-color:rgba(255,255,255,0.06);'>", unsafe_allow_html=True)
 
-    if st.session_state.get("show_analysis", False):
-        with st.spinner("⏳ Analyzing chat data..."):
-            # Fetch stats
-            num_messages, num_words, num_urls, num_media_messages = helper.fetch_stats(
-                selected_user, df
-            )
+    # Navigation buttons
+    st.markdown(
+        "<div style='font-size:0.78rem; font-weight:700; color:#64748b; letter-spacing:0.08em; margin-bottom:8px;'>CORE ANALYSIS</div>",
+        unsafe_allow_html=True,
+    )
+    for label in CORE_PAGES:
+        if st.button(label, key=f"nav_{label}", use_container_width=True):
+            st.session_state["active_page"] = label
 
-            # 4-Column Metric Cards layout
-            st.markdown(
-                '<div class="section-title">📊 Key Metrics Overview</div>',
-                unsafe_allow_html=True,
-            )
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                styles.render_metric_card(
-                    "Total Messages", f"{num_messages:,}", selected_user, icon="✉️"
-                )
-            with col2:
-                styles.render_metric_card(
-                    "Total Words", f"{num_words:,}", selected_user, icon="📝"
-                )
-            with col3:
-                styles.render_metric_card(
-                    "Media Omitted", f"{num_media_messages:,}", selected_user, icon="🖼️"
-                )
-            with col4:
-                styles.render_metric_card(
-                    "Links Shared", f"{num_urls:,}", selected_user, icon="🔗"
-                )
-
-            # Finding busiest users in the group (Group Level)
-            if selected_user == "All":
-                st.markdown(
-                    '<div class="section-title">👥 User Contribution & Activity</div>',
-                    unsafe_allow_html=True,
-                )
-                x, new_df = helper.most_busy_user(df)
-
-                col_busy1, col_busy2 = st.columns([3, 2])
-                with col_busy1:
-                    # Create a beautiful interactive Plotly bar chart
-                    fig = px.bar(
-                        x=x.index,
-                        y=x.values,
-                        labels={"x": "User", "y": "Number of Messages"},
-                        title="Top 5 Most Active Users",
-                        color=x.values,
-                        color_continuous_scale="Purples",
-                    )
-                    fig.update_layout(coloraxis_showscale=False)
-                    styles.style_plotly_fig(fig)
-                    st.plotly_chart(fig, use_container_width=True)
-                with col_busy2:
-                    st.markdown(
-                        "<div style='padding-top: 10px; font-weight:600; color:#a5b4fc; font-size:1.1rem; margin-bottom:8px;'>Percentage Contribution</div>",
-                        unsafe_allow_html=True,
-                    )
-                    st.dataframe(new_df, use_container_width=True)
-
-                # WordCloud and Common Words section using Tabs
+    if selected_user == "All":
         st.markdown(
-            '<div class="section-title">🔤 Vocabulary & Phrase Analysis</div>',
+            "<hr style='border-color:rgba(255,255,255,0.06);'>",
             unsafe_allow_html=True,
         )
-
-        most_common_df, all_words_df = helper.most_common_words(selected_user, df)
-        tab_wc, tab_words = st.tabs(["✨ Word Cloud", "📊 Most Common Words"])
-
-        with tab_wc:
-            df_wc = helper.create_wordcloud_bigrams(selected_user, df)
-            if df_wc is not None:
-                fig, ax = plt.subplots(figsize=(10, 5))
-                ax.imshow(df_wc, interpolation="bilinear")
-                ax.axis("off")
-                fig.patch.set_facecolor("none")  # Make background transparent
-                ax.patch.set_facecolor("none")
-                st.pyplot(fig, clear_figure=True)
-                plt.close(fig)  # Close the figure to free memory
-            else:
-                st.info(
-                    "No words found. This chat might be empty or entirely media files."
-                )
-        with tab_wc:
-            df_wc = helper.create_wordcloud(selected_user, df)
-            if df_wc is not None:
-                fig, ax = plt.subplots(figsize=(10, 5))
-                ax.imshow(df_wc, interpolation="bilinear")
-                ax.axis("off")
-                fig.patch.set_facecolor("none")  # Make background transparent
-                ax.patch.set_facecolor("none")
-                st.pyplot(fig, clear_figure=True)
-                plt.close(fig)  # Close the figure to free memory
-            else:
-                st.info(
-                    "No words found. This chat might be empty or entirely media files."
-                )
-
-        with tab_words:
-            if not most_common_df.empty:
-                if selected_user == "All":
-                    # Create a stacked bar chart showing contributions from each sender
-                    fig = px.bar(
-                        most_common_df,
-                        x="Count",
-                        y="Word",
-                        color="Sender",
-                        orientation="h",
-                        barmode="stack",
-                        title="Top 20 Words Breakdown by Sender",
-                        color_discrete_sequence=px.colors.qualitative.Pastel,
-                    )
-                else:
-                    # Standard solid-color bar chart for a single user
-                    fig = px.bar(
-                        most_common_df,
-                        x="Count",
-                        y="Word",
-                        orientation="h",
-                        title=f"Top 20 Words for {selected_user}",
-                        color_discrete_sequence=["#818cf8"],
-                    )
-
-                # Force Plotly to sort the bars so the longest one is at the top
-                fig.update_layout(yaxis={"categoryorder": "total ascending"})
-                styles.style_plotly_fig(fig)
-
-                # Display the interactive chart
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info(
-                    "No words found. This chat might be empty or entirely media files."
-                )
-
-        # Display the dataframe (always visible below the tabs)
-        if not all_words_df.empty:
-            st.markdown(
-                "<div style='font-weight:600; color:#a5b4fc; font-size:1.1rem; margin-top:20px; margin-bottom:8px;'>Top 50 Most Common Phrases Data</div>",
-                unsafe_allow_html=True,
-            )
-            st.dataframe(all_words_df, use_container_width=True)
-
-        # Emoji analysis section
         st.markdown(
-            '<div class="section-title">🎭 Sentiment & Emoji Analysis</div>',
+            "<div style='font-size:0.78rem; font-weight:700; color:#64748b; letter-spacing:0.08em; margin-bottom:8px;'>GROUP INSIGHTS</div>",
             unsafe_allow_html=True,
         )
-        emoji_df = helper.emoji_helper(selected_user, df)
+        for label in GROUP_PAGES:
+            if st.button(label, key=f"nav_{label}", use_container_width=True):
+                st.session_state["active_page"] = label
 
-        if not emoji_df.empty:
-            col_emo1, col_emo2 = st.columns([2, 3])
-            with col_emo1:
-                st.markdown(
-                    "<div style='font-weight:600; color:#a5b4fc; font-size:1.1rem; margin-bottom:8px;'>Emoji Count Table</div>",
-                    unsafe_allow_html=True,
-                )
-                st.dataframe(emoji_df, use_container_width=True)
-            with col_emo2:
-                top = emoji_df.head(10).copy()
-                top["Sender_Label"] = top["Sender"] + " (" + top["Emoji"] + ")"
-                if not top.empty:
-                    # Create an interactive pie/donut chart using Plotly Express
-                    fig = px.pie(
-                        top,
-                        values="Count",
-                        names="Sender_Label",
-                        title="Top 10 Most Common Emojis",
-                        hole=0.4,
-                        color_discrete_sequence=px.colors.qualitative.Pastel,
-                    )
+    st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='background:rgba(30,41,59,0.5); border-radius:10px; padding:10px 14px; font-size:0.8rem;'>"
+        f"<span style='color:#475569;'>Messages parsed: </span>"
+        f"<span style='color:#a5b4fc; font-weight:700;'>{len(df):,}</span>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
-                    # Force the labels and percentages to show up directly on the chart
-                    fig.update_traces(textposition="inside", textinfo="percent+label")
-                    styles.style_plotly_fig(fig)
+# Main area header
+styles.render_header()
 
-                    # Display the chart in Streamlit
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.info("No emojis found.")
-        else:
-            st.info(
-                "No emojis found. This chat might be empty or entirely media files."
-            )
-
-        # Timelines section using Tabs
-        st.markdown(
-            '<div class="section-title">📈 Interaction Timelines</div>',
-            unsafe_allow_html=True,
+# Active file options expander at the top of the main area
+with st.expander(f"📁 Active Chat Session: {uploaded_file.name}", expanded=False):
+    col_uploader_active, col_remove_btn = st.columns([3, 1])
+    with col_uploader_active:
+        change_val = st.file_uploader(
+            "Change active file",
+            type=["txt"],
+            key="active_uploader",
+            label_visibility="collapsed",
         )
-        tab_monthly, tab_daily = st.tabs(["📅 Monthly Timeline", "📈 Daily Timeline"])
+        if change_val is not None:
+            st.session_state["uploaded_file"] = change_val
+            st.rerun()
+    with col_remove_btn:
+        st.markdown("<div style='padding-top: 5px;'></div>", unsafe_allow_html=True)
+        if st.button("❌ Reset Upload"):
+            st.session_state["uploaded_file"] = None
+            st.session_state["active_page"] = "📊 Who Talks the Most?"
+            st.rerun()
 
-        with tab_monthly:
-            timeline = helper.monthly_timeline(selected_user, df)
-            if not timeline.empty:
-                monthly_fig = px.line(
-                    timeline,
-                    x="time",
-                    y="Message",
-                    markers=True,
-                    title="Messages per Month",
-                    labels={"time": "Month", "Message": "Messages"},
-                    color_discrete_sequence=["#818cf8"],
-                )
-                monthly_fig.update_layout(xaxis_tickangle=-45)
-                styles.style_plotly_fig(monthly_fig)
-                st.plotly_chart(monthly_fig, use_container_width=True)
-            else:
-                st.info("No timeline data available.")
+# Default page setup
+if "active_page" not in st.session_state:
+    st.session_state["active_page"] = "📊 Who Talks the Most?"
 
-        with tab_daily:
-            daily_timeline = helper.daily_timeline(selected_user, df)
-            if not daily_timeline.empty:
-                daily_fig = px.line(
-                    daily_timeline,
-                    x="only_date",
-                    y="Message",
-                    markers=True,
-                    title="Messages per Day",
-                    labels={"only_date": "Date", "Message": "Messages"},
-                    color_discrete_sequence=["#a78bfa"],
-                )
-                daily_fig.update_layout(xaxis_tickangle=-45)
-                styles.style_plotly_fig(daily_fig)
-                st.plotly_chart(daily_fig, use_container_width=True)
-            else:
-                st.info("No daily data available.")
+active = st.session_state["active_page"]
 
-        # Activity maps section using Tabs
-        st.markdown(
-            '<div class="section-title">⏱️ Activity & Engagement Patterns</div>',
-            unsafe_allow_html=True,
-        )
-        tab_days, tab_months, tab_heatmap = st.tabs(
-            ["📆 Weekly Activity Map", "🗓️ Monthly Activity Map", "🔥 Hourly Heatmap"]
-        )
+# Safety redirect if user switches away from "All" while in group-only pages
+if active in GROUP_PAGES and selected_user != "All":
+    st.session_state["active_page"] = "📊 Who Talks the Most?"
+    active = "📊 Who Talks the Most?"
 
-        with tab_days:
-            busy_day = helper.week_activity_map(selected_user, df)
-            if busy_day is not None and len(busy_day) > 0:
-                busy_day_df = busy_day.reset_index()
-                busy_day_df.columns = ["day_name", "Message"]
-                busy_day_df["day_name"] = pd.Categorical(
-                    busy_day_df["day_name"],
-                    categories=[
-                        "Monday",
-                        "Tuesday",
-                        "Wednesday",
-                        "Thursday",
-                        "Friday",
-                        "Saturday",
-                        "Sunday",
-                    ],
-                    ordered=True,
-                )
-                busy_day_df = busy_day_df.sort_values("day_name")
-                busy_day_df["Message"] = pd.to_numeric(
-                    busy_day_df["Message"], errors="coerce"
-                ).fillna(0)
-
-                busy_day_fig = px.bar(
-                    busy_day_df,
-                    x="day_name",
-                    y="Message",
-                    title="Messages by Day of Week",
-                    labels={"day_name": "Day", "Message": "Messages"},
-                    color="Message",
-                    color_continuous_scale="Sunsetdark",
-                )
-                busy_day_fig.update_layout(
-                    coloraxis_showscale=False, xaxis_tickangle=-45
-                )
-                styles.style_plotly_fig(busy_day_fig)
-                st.plotly_chart(busy_day_fig, use_container_width=True)
-            else:
-                st.info("No day activity data available.")
-
-        with tab_months:
-            busy_month = helper.month_activity_map(selected_user, df)
-            if busy_month is not None and len(busy_month) > 0:
-                busy_month_df = busy_month.reset_index()
-                busy_month_df.columns = ["month", "Message"]
-                month_order = [
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December",
-                ]
-                busy_month_df["month"] = pd.Categorical(
-                    busy_month_df["month"],
-                    categories=month_order,
-                    ordered=True,
-                )
-                busy_month_df = busy_month_df.sort_values("month")
-                busy_month_df["Message"] = pd.to_numeric(
-                    busy_month_df["Message"], errors="coerce"
-                ).fillna(0)
-
-                busy_month_fig = px.bar(
-                    busy_month_df,
-                    x="month",
-                    y="Message",
-                    title="Messages by Month",
-                    labels={"month": "Month", "Message": "Messages"},
-                    color="Message",
-                    color_continuous_scale="Sunsetdark",
-                )
-                busy_month_fig.update_layout(
-                    coloraxis_showscale=False, xaxis_tickangle=-45
-                )
-                styles.style_plotly_fig(busy_month_fig)
-                st.plotly_chart(busy_month_fig, use_container_width=True)
-            else:
-                st.info("No month activity data available.")
-
-        with tab_heatmap:
-            user_heatmap = helper.activity_heatmap(selected_user, df)
-            if user_heatmap is not None and not user_heatmap.empty:
-                heatmap_fig = px.imshow(
-                    user_heatmap,
-                    aspect="auto",
-                    color_continuous_scale="Viridis",
-                    labels={
-                        "x": "Period (hour ranges)",
-                        "y": "Day",
-                        "color": "Messages",
-                    },
-                    title="Messages Heatmap (Day vs Time Period)",
-                )
-                styles.style_plotly_fig(heatmap_fig)
-                st.plotly_chart(heatmap_fig, use_container_width=True)
-            else:
-                st.info("No weekly heatmap data available.")
-
-
+# Breadcrumb
+filter_label = f"👤 {selected_user}" if selected_user != "All" else "👥 All Users"
 st.markdown(
-    '<div class="section-title">🏆 Chat Awards</div>',
-    unsafe_allow_html=True
-)
-
-awards = chat_award.chat_awards(df)
-
-cols = st.columns(3)
-
-i = 0
-
-for award in awards.values():
-
-    with cols[i % 3]:
-
-        st.markdown(
-f"""
-<div class="metric-card">
-    <div class="metric-icon">
-        {award['title'].split()[0]}
-    </div>
-
-    <div class="metric-label">
-        {award['title']}
-    </div>
-
-    <div class="metric-value">
-        {award['winner']}
-    </div>
-
-    <div class="metric-user">
-        {award['value']} {award['suffix']}
-    </div>
+    f"""
+<div style="
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:20px; padding-bottom:12px;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+">
+    <span style="color:#475569; font-size:0.85rem;">Dashboard</span>
+    <span style="color:#334155;">›</span>
+    <span style="color:#a5b4fc; font-size:0.85rem; font-weight:600;">{active}</span>
+    <span style="margin-left:auto; background:rgba(99,102,241,0.15);
+                 border:1px solid rgba(99,102,241,0.3); border-radius:20px;
+                 padding:2px 12px; font-size:0.78rem; color:#818cf8;">{filter_label}</span>
 </div>
 """,
-unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
-    i += 1
-
-
-
-#Reply Speed Section
-st.markdown(
-    '<div class="section-title">⚡ Response Time Analysis</div>',
-    unsafe_allow_html=True
-)
-
-reply_stats = reply_speed.response_time_analysis(df)
-
-if reply_stats:
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.markdown(
-            """
-            <div style="
-                padding:20px;
-                border-radius:16px;
-                background:#131c46;
-            ">
-            """,
-            unsafe_allow_html=True
-        )
-
-        for user, sec in reply_stats['avg_reply'].items():
-
-            st.markdown(
-                f"""
-                **{user}**
-
-                ⚡ Average reply:
-                {reply_speed.format_seconds(sec)}
-                """
-            )
-
-        st.markdown("</div>",
-                    unsafe_allow_html=True)
-
-    with col2:
-
-        styles.render_metric_card(
-            "🏆 Fastest Replier",
-            reply_stats['fastest'],
-            "Fastest average response",
-            icon="⚡"
-        )
-
-        styles.render_metric_card(
-            "💀 Longest Ignore",
-            reply_stats['longest_ignore_sender'],
-            reply_speed.format_seconds(
-                reply_stats['longest_ignore']
-            ),
-            icon="💀"
-        )
-        #longest ignore to
-        styles.render_metric_card(
-            "⏱️ Ignored To",
-            reply_stats['longest_ignore_to'],
-            f"At {reply_stats['longest_ignore_time'].strftime('%Y-%m-%d %H:%M:%S')}",
-            icon="⏱️"
-        )
-
-
-#Reply Network Section
-st.markdown(
-    '<div class="section-title">👥 Reply Network Analysis</div>',
-    unsafe_allow_html=True
-)
-
-reply_data = reply_network.reply_network_analysis(df)
-
-edges = reply_data['edges']
-
-if not edges.empty:
-
-    # Awards
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        styles.render_metric_card(
-            "🏆 Most Popular",
-            reply_data['most_popular'],
-            "Most replied to",
-            icon="🏆"
-        )
-
-    with col2:
-        styles.render_metric_card(
-            "⚡ Most Responsive",
-            reply_data['most_responsive'],
-            "Most replies sent",
-            icon="⚡"
-        )
-
-    with col3:
-        styles.render_metric_card(
-            "🦋 Social Butterfly",
-            reply_data['social_butterfly'],
-            "Most connections",
-            icon="🦋"
-        )
-
-    st.markdown("---")
-
-    # Create graph
-    G = nx.DiGraph()
-
-    for _, row in edges.iterrows():
-
-        G.add_edge(
-            row['From'],
-            row['To'],
-            weight=row['Replies']
-        )
-
-    fig, ax = plt.subplots(
-        figsize=(10,8)
-    )
-
-    pos = nx.spring_layout(
-        G,
-        k=2,
-        seed=42
-    )
-
-    # Nodes
-    nx.draw_networkx_nodes(
-        G,
-        pos,
-        node_size=3500,
-        alpha=0.9,
-        ax=ax
-    )
-
-    # Edge widths
-    weights = [
-        G[u][v]['weight']
-        for u,v in G.edges()
-    ]
-
-    widths = [
-        max(1,w/3)
-        for w in weights
-    ]
-
-    # Draw edges
-    nx.draw_networkx_edges(
-        G,
-        pos,
-        width=widths,
-        arrows=True,
-        arrowsize=20,
-        alpha=0.7,
-        ax=ax
-    )
-
-    # Node labels
-    nx.draw_networkx_labels(
-        G,
-        pos,
-        font_size=10,
-        font_weight='bold',
-        ax=ax
-    )
-
-    # Edge labels
-    edge_labels = {
-        (u,v): G[u][v]['weight']
-        for u,v in G.edges()
-    }
-
-    nx.draw_networkx_edge_labels(
-        G,
-        pos,
-        edge_labels=edge_labels,
-        font_size=8,
-        ax=ax
-    )
-
-    ax.axis('off')
-
-    st.pyplot(fig)
-
-    st.markdown(
-        "<div style='font-weight:600; color:#a5b4fc; font-size:1.1rem; margin-top:20px;'>Reply Matrix</div>",
-        unsafe_allow_html=True
-    )
-
-    st.dataframe(
-        edges.sort_values(
-            'Replies',
-            ascending=False
-        ),
-        use_container_width=True
-    )
-
-else:
-    st.info(
-        "Not enough replies found."
-    )
-
-
-#Chat Streak Analysis
-st.markdown(
-    '<div class="section-title">🔥 Chat Streak Analysis</div>',
-    unsafe_allow_html=True
-)
-
-streak = chat_streak.chat_streak_analysis(df)
-
-if streak:
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-
-        styles.render_metric_card(
-            "🔥 Longest Streak",
-            streak['longest_streak'],
-            "days",
-            icon="🔥"
-        )
-
-    with col2:
-
-        styles.render_metric_card(
-            "⚡ Current Streak",
-            streak['current_streak'],
-            "days",
-            icon="⚡"
-        )
-
-    with col3:
-
-        styles.render_metric_card(
-            "💔 Biggest Break",
-            streak['biggest_break'],
-            "days",
-            icon="💔"
-        )
-
-    with col4:
-
-        styles.render_metric_card(
-            "🏆 Most Active Day",
-            streak['most_active_count'],
-            str(streak['most_active_day']),
-            icon="🏆"
-        )
-   
-
-    fig = px.line(
-        streak['streak_df'],
-        x='date',
-        y='streak',
-        markers=True,
-        title='Chat Streak History'
-    )
-
-    styles.style_plotly_fig(fig)
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-    if streak['longest_streak'] >= 365:
-        badge = "💍 Soulmates"
-
-    elif streak['longest_streak'] >= 100:
-        badge = "❤️ Best Friends"
-
-    elif streak['longest_streak'] >= 30:
-        badge = "🤝 Close Friends"
-
-    elif streak['longest_streak'] >= 10:
-        badge = "😊 Good Connection"
-
-    else:
-        badge = "🌱 Growing Bond"
-
-    st.success(
-        f"Relationship Consistency: {badge}"
-    )
-
-#Roast Mode Section
-st.markdown(
-    '<div class="section-title">😂 Group Roast Report</div>',
-    unsafe_allow_html=True
-)
-
-roasts = roast_mode.roast_mode(df)
-
-if roasts:
-
-    cols = st.columns(2)
-
-    for i, (title, roast) in enumerate(roasts.items()):
-
-        with cols[i % 2]:
-
-            styles.render_metric_card(
-                title,
-                roast['winner'],
-                roast['value'],
-                icon=title.split()[0]
-            )
-
-            st.markdown(
-                f"""
-                <div style="
-                    padding:10px;
-                    margin-bottom:20px;
-                    font-size:0.9rem;
-                    color:#cbd5e1;
-                    font-style:italic;
-                ">
-                    "{roast['roast']}"
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-#Ghost Mode Section
-
-
-st.markdown(
-    '<div class="section-title">👻 Ghosting Analysis</div>',
-    unsafe_allow_html=True
-)
-
-ghost = ghost_mode.ghosting_analysis(df)
-
-if ghost is not None:
-
-    
-    # First Row
-    
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-
-        styles.render_metric_card(
-            "Biggest Ghoster",
-            ghost['biggest_ghoster'],
-            ghost_mode.format_ghost_time(
-                ghost['biggest_ghoster_time']
-            ),
-            icon="👻"
-        )
-
-        ex = ghost['biggest_example']
-
-        st.caption(
-            f"""
-Previous:
-{ex['prev_sender']}
-({ex['prev_time']})
-
-"{str(ex['prev_message'])[:80]}"
-
-Reply:
-{ex['reply_sender']}
-({ex['reply_time']})
-
-"{str(ex['reply_message'])[:80]}"
-"""
-        )
-
-    with col2:
-
-        styles.render_metric_card(
-            "Fastest Responder",
-            ghost['fastest'],
-            ghost_mode.format_ghost_time(
-                ghost['fastest_time']
-            ),
-            icon="⚡"
-        )
-
-        ex = ghost['fastest_example']
-
-        st.caption(
-            f"""
-Previous:
-{ex['prev_sender']}
-({ex['prev_time']})
-
-"{str(ex['prev_message'])[:80]}"
-
-Reply:
-{ex['reply_sender']}
-({ex['reply_time']})
-
-"{str(ex['reply_message'])[:80]}"
-"""
-        )
-
-    with col3:
-
-        styles.render_metric_card(
-            "Ultra Ghost",
-            ghost['ultra_person'],
-            f"{ghost['ultra_count']} times",
-            icon="💀"
-        )
-
-        if ghost['ultra_example'] is not None:
-
-            ex = ghost['ultra_example']
-
-            st.caption(
-                f"""
-Previous:
-{ex['prev_sender']}
-({ex['prev_time']})
-
-"{str(ex['prev_message'])[:80]}"
-
-Reply:
-{ex['reply_sender']}
-({ex['reply_time']})
-
-"{str(ex['reply_message'])[:80]}"
-"""
-            )
-
-        else:
-            st.caption(
-                "Nobody disappeared for more than 24 hours."
-            )
-
-    
-    # Second Row
-
-    col4, col5 = st.columns(2)
-
-    with col4:
-
-        styles.render_metric_card(
-            "Most Ignored",
-            ghost['ignored_person'],
-            f"{ghost['ignored_count']} times",
-            icon="🥲"
-        )
-
-        st.caption(
-            "The universe chose silence."
-        )
-
-    with col5:
-
-        longest = ghost['longest']
-
-        styles.render_metric_card(
-            "Longest Ghost",
-            f"{longest['prev_sender']} → {longest['reply_sender']}",
-            ghost_mode.format_ghost_time(
-                longest['ghost_seconds']
-            ),
-            icon="🏆"
-        )
-
-        st.caption(
-            f"""
-Previous:
-{longest['prev_time']}
-
-"{str(longest['prev_message'])[:80]}"
-
-Reply:
-{longest['reply_time']}
-
-"{str(longest['reply_message'])[:80]}"
-"""
-        )
-
-    
-    # Worst Ghosting Pairs
-    
-
-    st.markdown(
-        """
-        <div style="
-        font-weight:600;
-        color:#a5b4fc;
-        font-size:1.1rem;
-        margin-top:20px;
-        margin-bottom:10px;
-        ">
-        🤝 Worst Ghosting Pairs
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.dataframe(
-        ghost['pair_stats'],
-        use_container_width=True
-    )
-
-    
-    # Verification Table
-    
-
-    with st.expander(
-        "📋 View Complete Ghosting Evidence",
-        expanded=False
-    ):
-
-        st.dataframe(
-            ghost['verification'],
-            use_container_width=True,
-            height=500
-        )
-
-else:
-
-    st.info(
-        "Not enough conversation transitions found for ghost analysis."
-    )
+# Route to page module
+with st.spinner("Loading..."):
+    if active in CORE_PAGES:
+        module_name = CORE_PAGES[active]
+        import importlib
+        page_mod = importlib.import_module(f"pages.{module_name}")
+        page_mod.render(selected_user, df)
+
+    elif active in GROUP_PAGES and selected_user == "All":
+        module_name = GROUP_PAGES[active]
+        import importlib
+        page_mod = importlib.import_module(f"pages.{module_name}")
+        page_mod.render(df)

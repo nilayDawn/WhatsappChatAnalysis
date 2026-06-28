@@ -22,6 +22,10 @@ def load_css():
         background-color: #0b0f19 !important;
         border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
+
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
     
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
         color: #94a3b8 !important;
@@ -228,7 +232,37 @@ def load_css():
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* Button Styling */
+    /* ── Sidebar Nav Buttons ─────────────────────────────────────── */
+    [data-testid="stSidebar"] div.stButton > button {
+        background: transparent !important;
+        color: #94a3b8 !important;
+        border: 1px solid transparent !important;
+        border-radius: 10px !important;
+        padding: 9px 14px !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        text-align: left !important;
+        width: 100% !important;
+        margin-bottom: 2px !important;
+        transition: all 0.18s ease !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stSidebar"] div.stButton > button:hover {
+        background: rgba(99, 102, 241, 0.12) !important;
+        color: #c7d2fe !important;
+        border-color: rgba(99, 102, 241, 0.25) !important;
+        transform: translateX(3px) !important;
+    }
+
+    [data-testid="stSidebar"] div.stButton > button:active {
+        background: rgba(99, 102, 241, 0.2) !important;
+        color: #a5b4fc !important;
+        transform: translateX(3px) !important;
+    }
+
+    /* ── Main Content Buttons ──────────────────────────────────────── */
+    [data-testid="stMain"] div.stButton > button,
     div.stButton > button {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
         color: white !important;
@@ -241,14 +275,128 @@ def load_css():
         width: 100%;
     }
 
+    [data-testid="stMain"] div.stButton > button:hover,
     div.stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
         background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important;
     }
 
+    [data-testid="stMain"] div.stButton > button:active,
     div.stButton > button:active {
         transform: translateY(0px) !important;
+    }
+
+    /* ── st.metric tweaks ──────────────────────────────────────────── */
+    div[data-testid="stMetric"] {
+        background: rgba(30, 41, 59, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+    }
+
+    div[data-testid="stMetricValue"] {
+        font-size: 1.6rem !important;
+        font-weight: 800 !important;
+        color: #a5b4fc !important;
+    }
+
+    /* Onboarding Screen CSS */
+    .welcome-hero {
+        text-align: center;
+        padding: 40px 20px 20px 20px;
+        margin-bottom: 20px;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        color: #a5b4fc;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+
+    .welcome-hero h1 {
+        font-size: 3.2rem !important;
+        font-weight: 900 !important;
+        margin: 0 0 16px 0 !important;
+        background: linear-gradient(to right, #ffffff, #a5b4fc, #818cf8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.03em;
+    }
+
+    .welcome-hero p {
+        color: #94a3b8;
+        font-size: 1.2rem;
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+        margin-bottom: 40px;
+    }
+
+    .feature-card {
+        background: rgba(30, 41, 59, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(99, 102, 241, 0.3);
+        background: rgba(30, 41, 59, 0.5);
+        box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.15);
+    }
+
+    .feature-card-icon {
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+    }
+
+    .feature-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin-bottom: 6px;
+    }
+
+    .feature-card-desc {
+        font-size: 0.85rem;
+        color: #64748b;
+        line-height: 1.4;
+    }
+
+    .upload-container {
+        background: rgba(30, 41, 59, 0.35);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px dashed rgba(99, 102, 241, 0.3);
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+    }
+
+    .upload-container:hover {
+        border-color: rgba(99, 102, 241, 0.6);
+        background: rgba(30, 41, 59, 0.45);
     }
     </style>
     """

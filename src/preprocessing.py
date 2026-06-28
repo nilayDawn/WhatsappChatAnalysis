@@ -34,6 +34,9 @@ def preprocess(text:str) -> pd.DataFrame:
     #keep only the rows where 'Sender' name is <= 5 words
     df = df[df['Sender'].str.split().str.len() <= 5]
 
+    #remove row where Sender is Meta AI
+    df = df[~df['Sender'].str.contains('Meta AI', case=False, na=False)]
+
     df['DateTime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], format='mixed', dayfirst=True)
 
     df['only_date'] = df['DateTime'].dt.date
