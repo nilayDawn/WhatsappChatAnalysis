@@ -3,9 +3,9 @@ from wordcloud import WordCloud
 import pandas as pd
 import emoji
 
-MEDIA_TEXT = '<Media omitted>\n' or 
+MEDIA_TEXT = '<Media omitted>' 
 
-# Load stopwords only once
+# Load stopwords 
 with open('src/full_stopword.txt', 'r', encoding='utf-8') as f:
     STOPWORDS = set(f.read().splitlines())
 
@@ -32,14 +32,11 @@ def fetch_stats(selected_user, df):
     num_words = sum(len(str(message).split()) for message in df['Message'])
 
     # media messages
-    num_media_messages = (df['Message'] == MEDIA_TEXT).sum()
+    num_media_messages = (df['is_media'] == True).sum()
 
     # urls
     extractor = URLExtract()
-    num_urls = sum(
-        len(extractor.find_urls(str(message)))
-        for message in df['Message']
-    )
+    num_urls = sum(len(extractor.find_urls(str(message)))for message in df['Message'])
 
     return num_messages, num_words, num_urls, num_media_messages
 
@@ -76,7 +73,7 @@ def create_wordcloud(selected_user, df):
         width=800,
         height=450,
         min_font_size=10,
-        background_color='#0f172a',
+        background_color="#ffffff",
         colormap='plasma'
     )
 
@@ -96,7 +93,7 @@ def create_wordcloud_bigrams(selected_user, df):
 
     temp['Message'] = temp['Message'].apply(remove_stopwords)
 
-    temp['Bigram_List'] = temp['Message'].apply(create_bigrams)
+    temp['Bigram_List'] = temp['Message'].apply(create_ngrams, n=2)
 
     exploded_bigrams = (
         temp
@@ -117,7 +114,7 @@ def create_wordcloud_bigrams(selected_user, df):
         width=800,
         height=450,
         min_font_size=10,
-        background_color='#0f172a',
+        background_color="#ffffff",
         colormap='plasma'
     )
 
@@ -137,9 +134,7 @@ def most_common_words(selected_user, df):
         remove_stopwords
     )
 
-    temp['Word_List'] = temp['Message'].apply(
-        create_bigrams
-    )
+    temp['Word_List'] = temp['Message'].apply(create_ngrams, n=2)
 
     words_df = temp.explode('Word_List')
 
@@ -211,11 +206,7 @@ def emoji_helper(selected_user, df):
     temp = df.copy()
 
     temp['Emoji_List'] = temp['Message'].apply(
-        lambda msg: [
-            e['emoji']
-            for e in emoji.emoji_list(str(msg))
-        ]
-    )
+        lambda msg: [ e['emoji'] for e in emoji.emoji_list(str(msg))])
 
     exploded_df = temp.explode('Emoji_List')
 

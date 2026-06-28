@@ -5,6 +5,8 @@ import plotly.express as px
 import seaborn as sns
 from preprocessing import preprocess
 import helper
+import chat_award
+import reply_speed
 import styles
 
 # Initialize page settings
@@ -160,7 +162,7 @@ else:
                     )
                     st.dataframe(new_df, use_container_width=True)
 
-        # WordCloud and Common Words section using Tabs
+                # WordCloud and Common Words section using Tabs
         st.markdown(
             '<div class="section-title">🔤 Vocabulary & Phrase Analysis</div>',
             unsafe_allow_html=True,
@@ -171,6 +173,20 @@ else:
 
         with tab_wc:
             df_wc = helper.create_wordcloud_bigrams(selected_user, df)
+            if df_wc is not None:
+                fig, ax = plt.subplots(figsize=(10, 5))
+                ax.imshow(df_wc, interpolation="bilinear")
+                ax.axis("off")
+                fig.patch.set_facecolor("none")  # Make background transparent
+                ax.patch.set_facecolor("none")
+                st.pyplot(fig, clear_figure=True)
+                plt.close(fig)  # Close the figure to free memory
+            else:
+                st.info(
+                    "No words found. This chat might be empty or entirely media files."
+                )
+        with tab_wc:
+            df_wc = helper.create_wordcloud(selected_user, df)
             if df_wc is not None:
                 fig, ax = plt.subplots(figsize=(10, 5))
                 ax.imshow(df_wc, interpolation="bilinear")
@@ -426,3 +442,44 @@ else:
                 st.plotly_chart(heatmap_fig, use_container_width=True)
             else:
                 st.info("No weekly heatmap data available.")
+
+
+st.markdown(
+    '<div class="section-title">🏆 Chat Awards</div>',
+    unsafe_allow_html=True
+)
+
+awards = chat_award.chat_awards(df)
+
+cols = st.columns(3)
+
+i = 0
+
+for award in awards.values():
+
+    with cols[i % 3]:
+
+        st.markdown(
+f"""
+<div class="metric-card">
+    <div class="metric-icon">
+        {award['title'].split()[0]}
+    </div>
+
+    <div class="metric-label">
+        {award['title']}
+    </div>
+
+    <div class="metric-value">
+        {award['winner']}
+    </div>
+
+    <div class="metric-user">
+        {award['value']} {award['suffix']}
+    </div>
+</div>
+""",
+unsafe_allow_html=True
+)
+
+    i += 1

@@ -23,13 +23,10 @@ def preprocess(text:str) -> pd.DataFrame:
 
     # Drops any row containing these phrases, ignoring uppercase/lowercase
     df = df[~df['Message'].str.contains('This message was deleted|You deleted this message', case=False, na=False)]
+    df['Message'] = df['Message'].str.replace(r'\n', '', regex=True)
 
-    # Strip hidden spaces/newlines, then remove rows that start with '<' AND end with '>'
-    # Drops any row where a message contains a '<' followed by ANY text, and then a '>'
-    #df['Message'] = df['Message'].str.replace(r'<.*?>', '', regex=True)
-
-    # Keep only messages that have 30 words or fewer
-    df = df[df['Message'].astype(str).str.split().str.len() <= 30]
+    # Trim each message to the first 30 words
+    df['Message'] = df['Message'].astype(str).str.split().str[:40].str.join(' ')
 
     # Keep only rows where the message is NOT an empty string
     df = df[df['Message'].str.strip() != ""]
@@ -65,7 +62,7 @@ def preprocess(text:str) -> pd.DataFrame:
 
     df['word_count'] = (df['Message'].astype(str).str.split().str.len())
 
-    df['is_media'] = (df['Message'] == '<Media omitted>\n')
+    df['is_media'] = (df['Message'] == '<Media omitted>')
 
     return df
 
