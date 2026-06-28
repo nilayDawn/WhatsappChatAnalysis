@@ -1,224 +1,308 @@
 from urlextract import URLExtract
 from wordcloud import WordCloud
 import pandas as pd
-from collections import Counter
 import emoji
 
+MEDIA_TEXT = '<Media omitted>\n' or 
 
-def create_bigrams(text):
-        words = str(text).split()
-        # Loop through the list and join word[i] with word[i+1]
-        return [f"{words[i]} {words[i+1]}" for i in range(len(words)-1)]
+# Load stopwords only once
+with open('src/full_stopword.txt', 'r', encoding='utf-8') as f:
+    STOPWORDS = set(f.read().splitlines())
 
-def fetch_stats(selected_user,df):
+
+def filter_user(df, selected_user):
     if selected_user != 'All':
-        df = df[df['Sender'] == selected_user]
-    # Fetch total messages
+        return df[df['Sender'] == selected_user]
+    return df
+
+
+def create_ngrams(text, n):
+    words = str(text).split()
+    # Grab chunks of size 'n' and join them with a space
+    return [" ".join(words[i:i+n]) for i in range(len(words) - n + 1)]
+
+
+def fetch_stats(selected_user, df):
+    df = filter_user(df, selected_user)
+
+    # total messages
     num_messages = df.shape[0]
 
-    # Fetch total words
-    words = []
-    for message in df['Message']:
-        words.extend(message.split())
-    num_words = len(words)
+    # total words
+    num_words = sum(len(str(message).split()) for message in df['Message'])
 
+    # media messages
+    num_media_messages = (df['Message'] == MEDIA_TEXT).sum()
 
-    #Fetch total media messages
-    num_media_messages = df[df['Message'] == '<Media omitted>\n'].shape[0]
-
-    # Fetch total URLs
+    # urls
     extractor = URLExtract()
-    urls = []
-    for message in df['Message']:
-        urls.extend(extractor.find_urls(message))
-    num_urls = len(urls)
+    num_urls = sum(
+        len(extractor.find_urls(str(message)))
+        for message in df['Message']
+    )
 
     return num_messages, num_words, num_urls, num_media_messages
 
+
 def most_busy_user(df):
     x = df['Sender'].value_counts().head()
-    df = round((df['Sender'].value_counts() / df.shape[0]) * 100, 2).reset_index().rename(columns={'Sender': 'Name', 'count': 'Percentage'})
-    return x, df
+
+    percent_df = (
+        round((df['Sender'].value_counts() / df.shape[0]) * 100, 2)
+        .reset_index()
+        .rename(columns={
+            'Sender': 'Name',
+            'count': 'Percentage'
+        })
+    )
+
+    return x, percent_df
+
 
 def remove_stopwords(message):
-    with open('src/full_stopword.txt', 'r') as f:
-        stopwords = f.read().splitlines()
-    y = []
-    for word in message.lower().split():
-        if word not in stopwords:
-            y.append(word)
-    return " ".join(y)
+    return " ".join(
+        word
+        for word in str(message).lower().split()
+        if word not in STOPWORDS
+    )
 
-def create_wordcloud(selected_user,df):
-    with open("src/full_stopword.txt", 'r') as f:
-        stopwords = f.read().splitlines()
-    if selected_user != 'All':
-        df = df[df['Sender'] == selected_user]
-    temp = df[df['Message'] != '<Media omitted>\n']
-    
-    wc = WordCloud(width=800, height=450, min_font_size=10, background_color='#0f172a', colormap='plasma')
+
+def create_wordcloud(selected_user, df):
+    df = filter_user(df, selected_user)
+
+    temp = df[df['Message'] != MEDIA_TEXT].copy()
+
+    wc = WordCloud(
+        width=800,
+        height=450,
+        min_font_size=10,
+        background_color='#0f172a',
+        colormap='plasma'
+    )
+
     temp['Message'] = temp['Message'].apply(remove_stopwords)
-    df_wc = wc.generate(temp['Message'].str.cat(sep=" "))
+
+    df_wc = wc.generate(
+        temp['Message'].str.cat(sep=" ")
+    )
+
     return df_wc
 
-from wordcloud import WordCloud
-import pandas as pd
 
 def create_wordcloud_bigrams(selected_user, df):
-    # Load stopwords
-    with open("src/full_stopword.txt", 'r') as f:
-        stopwords = f.read().splitlines()
-        
-    # Filter by user
-    temp = df[df['Message'] != '<Media omitted>\n'].copy()
-    if selected_user != 'All':
-        temp = temp[temp['Sender'] == selected_user]
-        
-    # 1. Clean the messages
+
+    temp = df[df['Message'] != MEDIA_TEXT].copy()
+    temp = filter_user(temp, selected_user)
+
     temp['Message'] = temp['Message'].apply(remove_stopwords)
-    
-    # 2. Create the bigrams (This returns a list of bigrams for each row)
-    temp['Bigram_List'] = temp['Message'].apply(create_bigrams) 
-    
-    # 3. Explode the lists into individual rows so Pandas can count them
-    exploded_bigrams = temp.explode('Bigram_List')['Bigram_List'].dropna()
-    
-    
-    # 4. Get the counts and convert them straight into a dictionary
-    # Example format: {'happy birthday': 45, 'good morning': 30}
-    bigram_frequencies = exploded_bigrams.value_counts().to_dict()
-    
-    # Handle the edge case where the chat is empty or has no valid bigrams
+
+    temp['Bigram_List'] = temp['Message'].apply(create_bigrams)
+
+    exploded_bigrams = (
+        temp
+        .explode('Bigram_List')['Bigram_List']
+        .dropna()
+    )
+
+    bigram_frequencies = (
+        exploded_bigrams
+        .value_counts()
+        .to_dict()
+    )
+
     if not bigram_frequencies:
-        return None 
-    
-    # 5. Initialize the WordCloud
-    wc = WordCloud(width=800, height=450, min_font_size=10, background_color='#0f172a', colormap='plasma')
-    
-    # 6. Generate the word cloud directly from the frequency dictionary!
-    df_wc = wc.generate_from_frequencies(bigram_frequencies)
-    
+        return None
+
+    wc = WordCloud(
+        width=800,
+        height=450,
+        min_font_size=10,
+        background_color='#0f172a',
+        colormap='plasma'
+    )
+
+    df_wc = wc.generate_from_frequencies(
+        bigram_frequencies
+    )
+
     return df_wc
 
+
 def most_common_words(selected_user, df):
-    # 1. Filter out media messages and create a clean copy
-    temp = df[df['Message'] != '<Media omitted>\n'].copy()
-    
-    # 2. Filter by user if a specific user is selected
-    if selected_user != 'All':
-        temp = temp[temp['Sender'] == selected_user]
 
-    # 3. Remove stopwords
-    # Assuming remove_stopwords is defined and returns a string
-    temp['Message'] = temp['Message'].apply(remove_stopwords)
+    temp = df[df['Message'] != MEDIA_TEXT].copy()
+    temp = filter_user(temp, selected_user)
 
-    # 4. Tokenize: Convert each message string into a list of words
-    temp['Word_List'] = temp['Message'].apply(create_bigrams)  # Using bigrams instead of single words
+    temp['Message'] = temp['Message'].apply(
+        remove_stopwords
+    )
 
-    # 5. Explode: Create a new row for every single word
+    temp['Word_List'] = temp['Message'].apply(
+        create_bigrams
+    )
+
     words_df = temp.explode('Word_List')
-    
-    # Clean up empty rows
-    words_df = words_df.dropna(subset=['Word_List'])
-    
-    # Check if empty to avoid errors
+
+    words_df = words_df.dropna(
+        subset=['Word_List']
+    )
+
     if words_df.empty:
-         empty_top20 = pd.DataFrame(columns=['Word', 'Count', 'Sender'])
-         empty_all = pd.DataFrame(columns=['TopWords', 'Count', 'Sender'])
-         return empty_top20, empty_all
+        empty_top20 = pd.DataFrame(
+            columns=['Word', 'Count', 'Sender']
+        )
 
-    # --- NEW: Create the unrestricted DataFrame ---
-    # Group ALL words by Word and Sender without any limits
-    all_words_df = words_df.groupby(['Word_List', 'Sender']).size().reset_index(name='Count')
-    all_words_df = all_words_df.rename(columns={'Word_List': 'TopWords'})
-    # Sort it so the highest counts are at the top
-    all_words_df = all_words_df.sort_values(by='Count', ascending=False).reset_index(drop=True)
-    all_words_df = all_words_df.head(50)  # Limit to top 20 for display purposes
+        empty_all = pd.DataFrame(
+            columns=['TopWords', 'Count', 'Sender']
+        )
 
+        return empty_top20, empty_all
 
-    # --- EXISTING: Create the Top 20 DataFrame ---
-    # 6. Find the top 20 most frequent words overall 
-    top_words = words_df['Word_List'].value_counts().head(20).index.tolist()
+    all_words_df = (
+        words_df
+        .groupby(['Word_List', 'Sender'])
+        .size()
+        .reset_index(name='Count')
+    )
 
-    # 7. Filter the exploded dataframe to ONLY include those top words
-    top_words_df = words_df[words_df['Word_List'].isin(top_words)]
+    all_words_df = all_words_df.rename(
+        columns={'Word_List': 'TopWords'}
+    )
 
-    # 8. Group by both Word and Sender to get the final counts
-    most_common_df = top_words_df.groupby(['Word_List', 'Sender']).size().reset_index(name='Count')
-    most_common_df = most_common_df.rename(columns={'Word_List': 'Word'})
+    all_words_df = (
+        all_words_df
+        .sort_values(
+            by='Count',
+            ascending=False
+        )
+        .reset_index(drop=True)
+    )
 
-    # Return BOTH DataFrames
+    all_words_df = all_words_df.head(50)
+
+    top_words = (
+        words_df['Word_List']
+        .value_counts()
+        .head(20)
+        .index
+        .tolist()
+    )
+
+    top_words_df = words_df[
+        words_df['Word_List'].isin(top_words)
+    ]
+
+    most_common_df = (
+        top_words_df
+        .groupby(['Word_List', 'Sender'])
+        .size()
+        .reset_index(name='Count')
+    )
+
+    most_common_df = most_common_df.rename(
+        columns={'Word_List': 'Word'}
+    )
+
     return most_common_df, all_words_df
 
+
 def emoji_helper(selected_user, df):
-    # 1. Extract emojis as a list for every single message row
-    df['Emoji_List'] = df['Message'].apply(lambda msg: [e['emoji'] for e in emoji.emoji_list(str(msg))])
-    
-    # 2. Explode the DataFrame so each emoji gets its own row while keeping its Sender
-    exploded_df = df.explode('Emoji_List')
-    
-    # 3. Drop rows where no emojis were found (they will show up as NaN)
-    exploded_df = exploded_df.dropna(subset=['Emoji_List'])
-    
-    # 4. Apply the user filter if a specific user is selected
-    if selected_user != 'All':
-        exploded_df = exploded_df[exploded_df['Sender'] == selected_user]
-        
-    # 5. Group by BOTH Sender and Emoji to get individual counts
-    emoji_counts = exploded_df.groupby(['Sender', 'Emoji_List']).size().reset_index(name='Count')
-    
-    # 6. Rename the emoji column for clean display
-    emoji_counts = emoji_counts.rename(columns={'Emoji_List': 'Emoji'})
-    
-    # 7. Sort by Count so the most popular emojis appear first
-    emoji_counts = emoji_counts.sort_values(by='Count', ascending=False).reset_index(drop=True)
-    
+
+    temp = df.copy()
+
+    temp['Emoji_List'] = temp['Message'].apply(
+        lambda msg: [
+            e['emoji']
+            for e in emoji.emoji_list(str(msg))
+        ]
+    )
+
+    exploded_df = temp.explode('Emoji_List')
+
+    exploded_df = exploded_df.dropna(
+        subset=['Emoji_List']
+    )
+
+    exploded_df = filter_user(
+        exploded_df,
+        selected_user
+    )
+
+    emoji_counts = (
+        exploded_df
+        .groupby(['Sender', 'Emoji_List'])
+        .size()
+        .reset_index(name='Count')
+    )
+
+    emoji_counts = emoji_counts.rename(
+        columns={'Emoji_List': 'Emoji'}
+    )
+
+    emoji_counts = (
+        emoji_counts
+        .sort_values(
+            by='Count',
+            ascending=False
+        )
+        .reset_index(drop=True)
+    )
+
     return emoji_counts
 
-def monthly_timeline(selected_user,df):
 
-    if selected_user != 'All':
-        df = df[df['Sender'] == selected_user]
+def monthly_timeline(selected_user, df):
 
-    timeline = df.groupby(['year', 'month_num', 'month']).count()['Message'].reset_index()
+    df = filter_user(df, selected_user)
 
-    time = []
-    for i in range(timeline.shape[0]):
-        time.append(timeline['month'][i] + "-" + str(timeline['year'][i]))
+    timeline = (
+        df.groupby(
+            ['year', 'month_num', 'month']
+        )
+        .count()['Message']
+        .reset_index()
+    )
 
-    timeline['time'] = time
+    timeline['time'] = (
+        timeline['month']
+        + "-"
+        + timeline['year'].astype(str)
+    )
 
     return timeline
 
-def daily_timeline(selected_user,df):
 
-    if selected_user != 'All':
-        df = df[df['Sender'] == selected_user]
+def daily_timeline(selected_user, df):
 
-    daily_timeline = df.groupby('only_date').count()['Message'].reset_index()
+    df = filter_user(df, selected_user)
+
+    daily_timeline = (
+        df.groupby('only_date')
+        .count()['Message']
+        .reset_index()
+    )
 
     return daily_timeline
 
-def week_activity_map(selected_user,df):
 
-    if selected_user != 'All':
-        df = df[df['Sender'] == selected_user]
+def week_activity_map(selected_user, df):
+
+    df = filter_user(df, selected_user)
 
     return df['day_name'].value_counts()
 
-def month_activity_map(selected_user,df):
 
-    if selected_user != 'All':
-        df = df[df['Sender'] == selected_user]
+def month_activity_map(selected_user, df):
+
+    df = filter_user(df, selected_user)
 
     return df['month'].value_counts()
 
-def activity_heatmap(selected_user,df):
 
-    if selected_user != 'All':
-        df = df[df['Sender'] == selected_user]
+def activity_heatmap(selected_user, df):
 
-    # Ensure seaborn heatmap doesn't crash on empty pivots
+    df = filter_user(df, selected_user)
+
     if df.empty:
         days = [
             'Monday',
@@ -227,21 +311,33 @@ def activity_heatmap(selected_user,df):
             'Thursday',
             'Friday',
             'Saturday',
-            'Sunday',
+            'Sunday'
         ]
+
         periods = []
-        for h in range(0, 24):
+
+        for h in range(24):
             if h == 23:
                 periods.append('23-00')
             elif h == 0:
                 periods.append('00-1')
             else:
-                periods.append(f'{h}-{h + 1}')
+                periods.append(f'{h}-{h+1}')
 
+        return pd.DataFrame(
+            0,
+            index=days,
+            columns=periods
+        )
 
-        user_heatmap = pd.DataFrame(0, index=days, columns=periods)
-        return user_heatmap
-
-    user_heatmap = df.pivot_table(index='day_name', columns='period', values='Message', aggfunc='count').fillna(0)
+    user_heatmap = (
+        df.pivot_table(
+            index='day_name',
+            columns='period',
+            values='Message',
+            aggfunc='count'
+        )
+        .fillna(0)
+    )
 
     return user_heatmap

@@ -26,7 +26,7 @@ def preprocess(text:str) -> pd.DataFrame:
 
     # Strip hidden spaces/newlines, then remove rows that start with '<' AND end with '>'
     # Drops any row where a message contains a '<' followed by ANY text, and then a '>'
-    df['Message'] = df['Message'].str.replace(r'<.*?>', '', regex=True)
+    #df['Message'] = df['Message'].str.replace(r'<.*?>', '', regex=True)
 
     # Keep only messages that have 30 words or fewer
     df = df[df['Message'].astype(str).str.split().str.len() <= 30]
@@ -47,6 +47,7 @@ def preprocess(text:str) -> pd.DataFrame:
     df['day_name'] = df['DateTime'].dt.day_name()
     df['hour'] = df['DateTime'].dt.hour
     df['minute'] = df['DateTime'].dt.minute
+    df['weekday_num'] = (df['DateTime'].dt.weekday)
 
     period = []
     for hour in df[['day_name', 'hour']]['hour']:
@@ -58,6 +59,13 @@ def preprocess(text:str) -> pd.DataFrame:
             period.append(str(hour) + "-" + str(hour + 1))
 
     df['period'] = period
+
+    df.reset_index(drop=True, inplace=True)
+    df['msg_id'] = df.index
+
+    df['word_count'] = (df['Message'].astype(str).str.split().str.len())
+
+    df['is_media'] = (df['Message'] == '<Media omitted>\n')
 
     return df
 
