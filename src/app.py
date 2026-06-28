@@ -10,6 +10,9 @@ import helper
 import chat_award
 import reply_speed
 import reply_network
+import chat_streak
+import roast_mode
+
 import styles
 
 # Initialize page settings
@@ -691,3 +694,126 @@ else:
     st.info(
         "Not enough replies found."
     )
+
+
+#Chat Streak Analysis
+st.markdown(
+    '<div class="section-title">🔥 Chat Streak Analysis</div>',
+    unsafe_allow_html=True
+)
+
+streak = chat_streak.chat_streak_analysis(df)
+
+if streak:
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+
+        styles.render_metric_card(
+            "🔥 Longest Streak",
+            streak['longest_streak'],
+            "days",
+            icon="🔥"
+        )
+
+    with col2:
+
+        styles.render_metric_card(
+            "⚡ Current Streak",
+            streak['current_streak'],
+            "days",
+            icon="⚡"
+        )
+
+    with col3:
+
+        styles.render_metric_card(
+            "💔 Biggest Break",
+            streak['biggest_break'],
+            "days",
+            icon="💔"
+        )
+
+    with col4:
+
+        styles.render_metric_card(
+            "🏆 Most Active Day",
+            streak['most_active_count'],
+            str(streak['most_active_day']),
+            icon="🏆"
+        )
+   
+
+    fig = px.line(
+        streak['streak_df'],
+        x='date',
+        y='streak',
+        markers=True,
+        title='Chat Streak History'
+    )
+
+    styles.style_plotly_fig(fig)
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+
+    if streak['longest_streak'] >= 365:
+        badge = "💍 Soulmates"
+
+    elif streak['longest_streak'] >= 100:
+        badge = "❤️ Best Friends"
+
+    elif streak['longest_streak'] >= 30:
+        badge = "🤝 Close Friends"
+
+    elif streak['longest_streak'] >= 10:
+        badge = "😊 Good Connection"
+
+    else:
+        badge = "🌱 Growing Bond"
+
+    st.success(
+        f"Relationship Consistency: {badge}"
+    )
+
+#Roast Mode Section
+st.markdown(
+    '<div class="section-title">😂 Group Roast Report</div>',
+    unsafe_allow_html=True
+)
+
+roasts = roast_mode.roast_mode(df)
+
+if roasts:
+
+    cols = st.columns(2)
+
+    for i, (title, roast) in enumerate(roasts.items()):
+
+        with cols[i % 2]:
+
+            styles.render_metric_card(
+                title,
+                roast['winner'],
+                roast['value'],
+                icon=title.split()[0]
+            )
+
+            st.markdown(
+                f"""
+                <div style="
+                    padding:10px;
+                    margin-bottom:20px;
+                    font-size:0.9rem;
+                    color:#cbd5e1;
+                    font-style:italic;
+                ">
+                    "{roast['roast']}"
+                </div>
+                """,
+                unsafe_allow_html=True
+            )

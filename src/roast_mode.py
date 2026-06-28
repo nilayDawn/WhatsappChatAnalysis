@@ -1,0 +1,264 @@
+import pandas as pd
+import emoji
+
+
+def roast_mode(df):
+
+    if df.empty:
+        return None
+
+    temp = df.copy()
+    total_messages = len(temp)
+
+    # Message Spammer
+  
+    msg_counts = temp['Sender'].value_counts()
+
+    spammer = msg_counts.index[0]
+    spammer_percent = round(
+        msg_counts.iloc[0] / total_messages * 100,
+        1
+    )
+
+   
+    # Silent Observer
+  
+    silent = msg_counts.index[-1]
+    silent_percent = round(
+        msg_counts.iloc[-1] / total_messages * 100,
+        1
+    )
+
+    # Essay Writer
+  
+    temp['word_count'] = (
+        temp['Message']
+        .astype(str)
+        .str.split()
+        .str.len()
+    )
+
+    essay_stats = (
+        temp
+        .groupby('Sender')['word_count']
+        .mean()
+        .sort_values(ascending=False)
+    )
+
+    essay_writer = essay_stats.index[0]
+    essay_score = round(
+        essay_stats.iloc[0],
+        1
+    )
+
+    # Speed Demon
+  
+    reply = temp.copy()
+
+    reply['prev_sender'] = reply['Sender'].shift()
+    reply['prev_time'] = reply['DateTime'].shift()
+
+    reply['reply_seconds'] = (
+        reply['DateTime']
+        - reply['prev_time']
+    ).dt.total_seconds()
+
+    reply = reply[
+        (reply['Sender'] != reply['prev_sender'])
+        &
+        (reply['reply_seconds'] > 0)
+        &
+        (reply['reply_seconds'] <= 3600)
+    ]
+
+    if not reply.empty:
+
+        speed = (
+            reply
+            .groupby('Sender')
+            ['reply_seconds']
+            .mean()
+            .sort_values()
+        )
+
+        speed_demon = speed.index[0]
+
+        speed_value = (
+            f"{int(speed.iloc[0])} sec"
+        )
+
+    else:
+
+        speed_demon = "Nobody"
+        speed_value = "-"
+
+   
+    # Double Texter
+  
+    temp['prev_sender'] = (
+        temp['Sender']
+        .shift()
+    )
+
+    temp['double'] = (
+        temp['Sender']
+        ==
+        temp['prev_sender']
+    )
+
+    doubles = (
+        temp
+        .groupby('Sender')
+        ['double']
+        .sum()
+        .sort_values(
+            ascending=False
+        )
+    )
+
+    double_texter = doubles.index[0]
+    double_count = int(
+        doubles.iloc[0]
+    )
+
+    
+    # Emoji Addict
+    
+    temp['emoji_count'] = (
+        temp['Message']
+        .apply(
+            lambda x:
+            len(
+                emoji.emoji_list(
+                    str(x)
+                )
+            )
+        )
+    )
+
+    emoji_stats = (
+        temp
+        .groupby('Sender')
+        ['emoji_count']
+        .sum()
+        .sort_values(
+            ascending=False
+        )
+    )
+
+    emoji_addict = emoji_stats.index[0]
+    emoji_total = int(
+        emoji_stats.iloc[0]
+    )
+
+   
+    # Night Owl
+   
+    night = temp[
+        (temp['hour'] >= 0)
+        &
+        (temp['hour'] <= 4)
+    ]
+
+    if not night.empty:
+
+        night_counts = (
+            night['Sender']
+            .value_counts()
+        )
+
+        night_owl = night_counts.index[0]
+
+        night_percent = round(
+            night_counts.iloc[0]
+            /
+            len(night)
+            * 100,
+            1
+        )
+
+    else:
+
+        night_owl = "Nobody"
+        night_percent = 0
+
+    
+    # NPC Speaker
+  
+    npc = (
+        temp
+        .groupby('Sender')
+        ['word_count']
+        .mean()
+        .sort_values()
+    )
+
+    npc_person = npc.index[0]
+    npc_words = round(
+        npc.iloc[0],
+        1
+    )
+
+  
+    # Final Roast Dictionary
+   
+    roasts = {
+
+        "📢 Message Spammer": {
+            "winner": spammer,
+            "value": f"{spammer_percent}%",
+            "roast":
+            f"The group apparently functions as {spammer}'s personal diary."
+        },
+
+        "👻 Silent Observer": {
+            "winner": silent,
+            "value": f"{silent_percent}%",
+            "roast":
+            "Witness protection program confirmed."
+        },
+
+        "📝 Essay Writer": {
+            "winner": essay_writer,
+            "value": f"{essay_score} words/msg",
+            "roast":
+            "Every message arrives with footnotes."
+        },
+
+        "⚡ Speed Demon": {
+            "winner": speed_demon,
+            "value": speed_value,
+            "roast":
+            "Probably replying before reading."
+        },
+
+        "💀 Double Texter": {
+            "winner": double_texter,
+            "value": f"{double_count}",
+            "roast":
+            "Waiting for replies was never an option."
+        },
+
+        "😂 Emoji Addict": {
+            "winner": emoji_addict,
+            "value": f"{emoji_total}",
+            "roast":
+            "Communication through hieroglyphics achieved."
+        },
+
+        "🌙 Night Owl": {
+            "winner": night_owl,
+            "value": f"{night_percent}%",
+            "roast":
+            "Sleep appears to be optional."
+        },
+
+        "🤖 NPC Speaker": {
+            "winner": npc_person,
+            "value": f"{npc_words} words/msg",
+            "roast":
+            "Generated by a side-character AI."
+        }
+    }
+
+    return roasts
