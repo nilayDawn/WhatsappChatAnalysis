@@ -483,3 +483,69 @@ unsafe_allow_html=True
 )
 
     i += 1
+
+
+
+#Reply Speed Section
+st.markdown(
+    '<div class="section-title">⚡ Response Time Analysis</div>',
+    unsafe_allow_html=True
+)
+
+reply_stats = reply_speed.response_time_analysis(df)
+
+if reply_stats:
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.markdown(
+            """
+            <div style="
+                padding:20px;
+                border-radius:16px;
+                background:#131c46;
+            ">
+            """,
+            unsafe_allow_html=True
+        )
+
+        for user, sec in reply_stats['avg_reply'].items():
+
+            st.markdown(
+                f"""
+                **{user}**
+
+                ⚡ Average reply:
+                {reply_speed.format_seconds(sec)}
+                """
+            )
+
+        st.markdown("</div>",
+                    unsafe_allow_html=True)
+
+    with col2:
+
+        styles.render_metric_card(
+            "🏆 Fastest Replier",
+            reply_stats['fastest'],
+            "Fastest average response",
+            icon="⚡"
+        )
+
+        styles.render_metric_card(
+            "💀 Longest Ignore",
+            reply_stats['longest_ignore_sender'],
+            reply_speed.format_seconds(
+                reply_stats['longest_ignore']
+            ),
+            icon="💀"
+        )
+        #longest ignore to
+        styles.render_metric_card(
+            "⏱️ Ignored To",
+            reply_stats['longest_ignore_to'],
+            f"At {reply_stats['longest_ignore_time'].strftime('%Y-%m-%d %H:%M:%S')}",
+            icon="⏱️"
+        )
