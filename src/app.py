@@ -3,10 +3,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.express as px
 import seaborn as sns
+import networkx as nx
+
 from preprocessing import preprocess
 import helper
 import chat_award
 import reply_speed
+import reply_network
 import styles
 
 # Initialize page settings
@@ -549,3 +552,142 @@ if reply_stats:
             f"At {reply_stats['longest_ignore_time'].strftime('%Y-%m-%d %H:%M:%S')}",
             icon="⏱️"
         )
+
+
+#Reply Network Section
+st.markdown(
+    '<div class="section-title">👥 Reply Network Analysis</div>',
+    unsafe_allow_html=True
+)
+
+reply_data = reply_network.reply_network_analysis(df)
+
+edges = reply_data['edges']
+
+if not edges.empty:
+
+    # Awards
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        styles.render_metric_card(
+            "🏆 Most Popular",
+            reply_data['most_popular'],
+            "Most replied to",
+            icon="🏆"
+        )
+
+    with col2:
+        styles.render_metric_card(
+            "⚡ Most Responsive",
+            reply_data['most_responsive'],
+            "Most replies sent",
+            icon="⚡"
+        )
+
+    with col3:
+        styles.render_metric_card(
+            "🦋 Social Butterfly",
+            reply_data['social_butterfly'],
+            "Most connections",
+            icon="🦋"
+        )
+
+    st.markdown("---")
+
+    # Create graph
+    G = nx.DiGraph()
+
+    for _, row in edges.iterrows():
+
+        G.add_edge(
+            row['From'],
+            row['To'],
+            weight=row['Replies']
+        )
+
+    fig, ax = plt.subplots(
+        figsize=(10,8)
+    )
+
+    pos = nx.spring_layout(
+        G,
+        k=2,
+        seed=42
+    )
+
+    # Nodes
+    nx.draw_networkx_nodes(
+        G,
+        pos,
+        node_size=3500,
+        alpha=0.9,
+        ax=ax
+    )
+
+    # Edge widths
+    weights = [
+        G[u][v]['weight']
+        for u,v in G.edges()
+    ]
+
+    widths = [
+        max(1,w/3)
+        for w in weights
+    ]
+
+    # Draw edges
+    nx.draw_networkx_edges(
+        G,
+        pos,
+        width=widths,
+        arrows=True,
+        arrowsize=20,
+        alpha=0.7,
+        ax=ax
+    )
+
+    # Node labels
+    nx.draw_networkx_labels(
+        G,
+        pos,
+        font_size=10,
+        font_weight='bold',
+        ax=ax
+    )
+
+    # Edge labels
+    edge_labels = {
+        (u,v): G[u][v]['weight']
+        for u,v in G.edges()
+    }
+
+    nx.draw_networkx_edge_labels(
+        G,
+        pos,
+        edge_labels=edge_labels,
+        font_size=8,
+        ax=ax
+    )
+
+    ax.axis('off')
+
+    st.pyplot(fig)
+
+    st.markdown(
+        "<div style='font-weight:600; color:#a5b4fc; font-size:1.1rem; margin-top:20px;'>Reply Matrix</div>",
+        unsafe_allow_html=True
+    )
+
+    st.dataframe(
+        edges.sort_values(
+            'Replies',
+            ascending=False
+        ),
+        use_container_width=True
+    )
+
+else:
+    st.info(
+        "Not enough replies found."
+    )
