@@ -36,9 +36,11 @@ GROUP_PAGES = {
     "🌙 Sleep Deprivation":     "sleep",
 }
 
-# Initialize session state for uploaded file
+# Initialize session state for uploaded file and analysis state
 if "uploaded_file" not in st.session_state:
     st.session_state["uploaded_file"] = None
+if "show_analysis" not in st.session_state:
+    st.session_state["show_analysis"] = False
 
 # Preprocessing cache
 @st.cache_data(show_spinner=False)
@@ -53,10 +55,8 @@ def get_users(df):
     return users
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# State: No File Uploaded (Onboarding / Landing Page)
-# ─────────────────────────────────────────────────────────────────────────────
-if st.session_state["uploaded_file"] is None:
+# Onboarding / Landing Page State
+if st.session_state["uploaded_file"] is None or not st.session_state["show_analysis"]:
     # Sidebar: Locked Nav info
     with st.sidebar:
         st.markdown(
@@ -113,8 +113,14 @@ if st.session_state["uploaded_file"] is None:
             label_visibility="collapsed",
         )
         if uploaded is not None:
-            st.session_state["uploaded_file"] = uploaded
-            st.rerun()
+            st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
+            if st.button("📊 Show Analysis", use_container_width=True):
+                st.session_state["uploaded_file"] = uploaded
+                st.session_state["show_analysis"] = True
+                st.rerun()
+        else:
+            st.session_state["uploaded_file"] = None
+            st.session_state["show_analysis"] = False
 
     with col_guide:
         styles.render_instructions()
@@ -153,9 +159,9 @@ if st.session_state["uploaded_file"] is None:
     st.stop()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+
 # State: File Uploaded (Dashboard Mode)
-# ─────────────────────────────────────────────────────────────────────────────
+
 uploaded_file = st.session_state["uploaded_file"]
 
 content = uploaded_file.getvalue()

@@ -88,6 +88,7 @@ def ghosting_analysis(df):
             ascending=False
         )
         .iloc[0]
+        .to_dict()
     )
 
     
@@ -118,6 +119,7 @@ def ghosting_analysis(df):
             'ghost_seconds'
         )
         .iloc[0]
+        .to_dict()
     )
 
     
@@ -127,7 +129,7 @@ def ghosting_analysis(df):
     longest = temp.loc[
         temp['ghost_seconds']
         .idxmax()
-    ]
+    ].to_dict()
 
     
     # Most ignored
@@ -191,6 +193,7 @@ def ghosting_analysis(df):
                 ascending=False
             )
             .iloc[0]
+            .to_dict()
         )
 
     else:

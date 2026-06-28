@@ -53,7 +53,7 @@ def render(df):
             f"{ghost['ultra_count']} times",
             icon="💀",
         )
-        if ghost["ultra_example"]:
+        if ghost["ultra_example"] is not None:
             ex = ghost["ultra_example"]
             st.caption(
                 f'💬 {ex["prev_sender"]} ({ex["prev_time"]}): "{str(ex["prev_message"])[:60]}"\n\n'
