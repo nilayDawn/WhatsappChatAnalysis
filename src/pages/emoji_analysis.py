@@ -7,10 +7,8 @@ import styles
 def render(selected_user, df):
     """Renders the Emoji & Sentiment Analysis page."""
 
-    st.markdown(
-        '<div class="section-title">🎭 Emoji &amp; Sentiment Analysis</div>',
-        unsafe_allow_html=True,
-    )
+    styles.render_section_header("🎭", "Emoji & Vibe Check",
+                                 "Which emojis define your conversations?")
 
     emoji_df = helper.emoji_helper(selected_user, df)
 
@@ -18,7 +16,8 @@ def render(selected_user, df):
         col_emo1, col_emo2 = st.columns([2, 3])
         with col_emo1:
             st.markdown(
-                "<div style='font-weight:600; color:#a5b4fc; font-size:1.05rem; margin-bottom:8px;'>📊 Emoji Count Table</div>",
+                "<div style='font-weight:700;color:#8B5CF6;font-size:1.05rem;margin-bottom:8px;'>"
+                "📊 Emoji Count Table</div>",
                 unsafe_allow_html=True,
             )
             st.dataframe(emoji_df, use_container_width=True)

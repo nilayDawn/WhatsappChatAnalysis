@@ -8,13 +8,11 @@ import styles
 def render(selected_user, df):
     """Renders the Vocabulary & Phrase Analysis page."""
 
-    st.markdown(
-        '<div class="section-title">🔤 Vocabulary &amp; Phrase Analysis</div>',
-        unsafe_allow_html=True,
-    )
+    styles.render_section_header("🔤", "Slang & Catchphrases",
+                                 "The words and phrases that define your conversations")
 
     most_common_df, all_words_df = helper.most_common_words(selected_user, df)
-    tab_wc, tab_words = st.tabs(["✨ Word Cloud (Bigrams)", "📊 Most Common Phrases"])
+    tab_wc, tab_words = st.tabs(["✨ Most Used Words", "📊 Most Common Phrases"])
 
     with tab_wc:
         df_wc = helper.create_wordcloud_bigrams(selected_user, df)
@@ -22,8 +20,8 @@ def render(selected_user, df):
             fig, ax = plt.subplots(figsize=(12, 5))
             ax.imshow(df_wc, interpolation="bilinear")
             ax.axis("off")
-            fig.patch.set_facecolor("none")
-            ax.patch.set_facecolor("none")
+            fig.patch.set_facecolor("#070B14")
+            ax.patch.set_facecolor("#070B14")
             st.pyplot(fig, clear_figure=True)
             plt.close(fig)
         else:
@@ -49,7 +47,7 @@ def render(selected_user, df):
                     y="Word",
                     orientation="h",
                     title=f"Top 20 Phrases for {selected_user}",
-                    color_discrete_sequence=["#818cf8"],
+                    color_discrete_sequence=["#8B5CF6"],
                 )
             fig.update_layout(yaxis={"categoryorder": "total ascending"})
             styles.style_plotly_fig(fig)
@@ -60,7 +58,8 @@ def render(selected_user, df):
     # Always-visible phrases table
     if not all_words_df.empty:
         st.markdown(
-            "<div style='font-weight:600; color:#a5b4fc; font-size:1.05rem; margin-top:24px; margin-bottom:8px;'>📋 Top 50 Most Common Phrases</div>",
+            "<div style='font-weight:700;color:#8B5CF6;font-size:1.05rem;margin-top:24px;margin-bottom:8px;'>"
+            "📋 Top 50 Most Common Phrases</div>",
             unsafe_allow_html=True,
         )
         st.dataframe(all_words_df, use_container_width=True)

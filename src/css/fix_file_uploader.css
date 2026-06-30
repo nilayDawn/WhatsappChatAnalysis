@@ -1,0 +1,63 @@
+/* Fix: Streamlit file_uploader UI overlap
+   Target: the "Upload" control overlapping the next expander/header area.
+   Also: style the uploader to match the upload zone.
+
+   Approach:
+   - Let Streamlit's wrapper handle normal layout (remove any absolute/floating effects)
+   - Ensure the internal file input doesn't escape its container
+   - Add a bottom margin to the uploader wrapper
+*/
+
+/* Uploader wrapper: keep it in the normal document flow */
+div[data-testid="stFileUploader"],
+div[data-baseweb="file-uploader"] {
+  position: static !important;
+  z-index: auto !important;
+  margin-bottom: 12px !important;
+}
+
+/* Some builds use stFileUpload for the same component */
+div[data-testid="stFileUpload"] {
+  position: static !important;
+  z-index: auto !important;
+  margin-bottom: 12px !important;
+}
+
+/* Ensure the upload input element stays inside the wrapper */
+div[data-testid="stFileUploader"] input[type="file"],
+div[data-baseweb="file-uploader"] input[type="file"],
+div[data-testid="stFileUpload"] input[type="file"] {
+  position: static !important;
+  margin: 0 !important;
+}
+
+/* Keep label layout stable */
+div[data-testid="stFileUploader"] label,
+div[data-baseweb="file-uploader"] label,
+div[data-testid="stFileUpload"] label {
+  display: block !important;
+  line-height: 1.3 !important;
+}
+
+/* Style the uploader drop area to match the upload zone */
+div[data-testid="stFileUploader"] section,
+div[data-baseweb="file-uploader"] section {
+  background: rgba(139,92,246,0.06) !important;
+  border: 1px solid rgba(139,92,246,0.2) !important;
+  border-radius: 14px !important;
+  padding: 24px 16px !important;
+  text-align: center !important;
+  transition: all .3s !important;
+}
+
+div[data-testid="stFileUploader"] section:hover,
+div[data-baseweb="file-uploader"] section:hover {
+  border-color: rgba(139,92,246,0.5) !important;
+  background: rgba(139,92,246,0.1) !important;
+}
+
+/* Remove the extra top padding/margin above the uploader */
+div[data-testid="stFileUploader"] section > div:first-child,
+div[data-baseweb="file-uploader"] section > div:first-child {
+  margin-top: 0 !important;
+}

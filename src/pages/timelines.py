@@ -9,10 +9,8 @@ def render(selected_user, df):
     """Renders the Timelines & Activity Patterns page."""
 
     # ── Interaction Timelines ─────────────────────────────────────────────────
-    st.markdown(
-        '<div class="section-title">📈 Interaction Timelines</div>',
-        unsafe_allow_html=True,
-    )
+    styles.render_section_header("📈", "Interaction Timelines",
+                                 "How your conversations evolved over time")
 
     tab_monthly, tab_daily = st.tabs(["📅 Monthly Timeline", "📈 Daily Timeline"])
 
@@ -26,7 +24,7 @@ def render(selected_user, df):
                 markers=True,
                 title="Messages per Month",
                 labels={"time": "Month", "Message": "Messages"},
-                color_discrete_sequence=["#818cf8"],
+                color_discrete_sequence=["#8B5CF6"],
             )
             monthly_fig.update_layout(xaxis_tickangle=-45)
             styles.style_plotly_fig(monthly_fig)
@@ -44,7 +42,7 @@ def render(selected_user, df):
                 markers=True,
                 title="Messages per Day",
                 labels={"only_date": "Date", "Message": "Messages"},
-                color_discrete_sequence=["#a78bfa"],
+                color_discrete_sequence=["#EC4899"],
             )
             daily_fig.update_layout(xaxis_tickangle=-45)
             styles.style_plotly_fig(daily_fig)
@@ -53,10 +51,9 @@ def render(selected_user, df):
             st.info("No daily data available.")
 
     # ── Activity Patterns ─────────────────────────────────────────────────────
-    st.markdown(
-        '<div class="section-title">⏱️ Activity &amp; Engagement Patterns</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
+    styles.render_section_header("⏱️", "Activity & Engagement Patterns",
+                                 "When does your group come alive?")
 
     tab_days, tab_months, tab_heatmap = st.tabs(
         ["📆 Weekly Activity", "🗓️ Monthly Activity", "🔥 Hourly Heatmap"]
@@ -87,7 +84,7 @@ def render(selected_user, df):
                 title="Messages by Day of Week",
                 labels={"day_name": "Day", "Message": "Messages"},
                 color="Message",
-                color_continuous_scale="Sunsetdark",
+                color_continuous_scale=["#1e1b4b", "#8B5CF6", "#EC4899"],
             )
             busy_day_fig.update_layout(
                 coloraxis_showscale=False, xaxis_tickangle=-45
@@ -122,7 +119,7 @@ def render(selected_user, df):
                 title="Messages by Month",
                 labels={"month": "Month", "Message": "Messages"},
                 color="Message",
-                color_continuous_scale="Sunsetdark",
+                color_continuous_scale=["#1e1b4b", "#3B82F6", "#8B5CF6"],
             )
             busy_month_fig.update_layout(
                 coloraxis_showscale=False, xaxis_tickangle=-45
@@ -138,10 +135,15 @@ def render(selected_user, df):
             heatmap_fig = px.imshow(
                 user_heatmap,
                 aspect="auto",
-                color_continuous_scale="Viridis",
+                color_continuous_scale=["#070B14", "#1e1b4b", "#8B5CF6", "#EC4899"],
                 labels={"x": "Period (hour ranges)", "y": "Day", "color": "Messages"},
                 title="Messages Heatmap (Day vs Time Period)",
             )
+
+            #Force Plotly to treat axes as categorical strings
+            heatmap_fig.update_xaxes(type='category')
+            heatmap_fig.update_yaxes(type='category')
+
             styles.style_plotly_fig(heatmap_fig)
             st.plotly_chart(heatmap_fig, use_container_width=True)
         else:

@@ -5,12 +5,12 @@ import styles
 
 
 def render(df):
-    """Renders the Chat Streak Analysis page (Group-only)."""
+    """Chapter 5: Chat Streaks — Duolingo-style streak experience."""
 
-    st.markdown(
-        '<div class="section-title">🔥 Chat Streak Analysis</div>',
-        unsafe_allow_html=True,
-    )
+    styles.render_chapter_divider("05", "Chat Streaks")
+
+    styles.render_section_header("🔥", "Friendship Consistency",
+                                 "How dedicated are you to keeping the conversation alive?")
 
     streak = chat_streak.chat_streak_analysis(df)
 
@@ -18,72 +18,59 @@ def render(df):
         st.info("Not enough data to compute streak analysis.")
         return
 
-    # ── Metric cards ──────────────────────────────────────────────────────────
+    # ── Streak cards ──
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        styles.render_metric_card(
-            "🔥 Longest Streak", f"{streak['longest_streak']}", "days", icon="🔥"
-        )
+        styles.render_streak_card("🔥", "Longest Streak", streak["longest_streak"], "days", "#F59E0B")
     with col2:
-        styles.render_metric_card(
-            "⚡ Current Streak", f"{streak['current_streak']}", "days", icon="⚡"
-        )
+        styles.render_streak_card("⚡", "Current Streak", streak["current_streak"], "days", "#8B5CF6")
     with col3:
-        styles.render_metric_card(
-            "💔 Biggest Break", f"{streak['biggest_break']}", "days", icon="💔"
-        )
+        styles.render_streak_card("💔", "Biggest Break", streak["biggest_break"], "days", "#EF4444")
     with col4:
-        styles.render_metric_card(
-            "🏆 Most Active Day",
-            f"{streak['most_active_count']}",
-            str(streak["most_active_day"]),
-            icon="🏆",
-        )
+        styles.render_streak_card("🏆", "Most Active Day", streak["most_active_count"], "messages", "#10B981")
 
-    # ── Streak history chart ──────────────────────────────────────────────────
-    st.markdown("<div style='margin-top:24px'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    st.caption(f"📅 Most active day: {streak['most_active_day']}")
+
+    st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
+
+    # ── Streak history chart ──
     fig = px.line(
-        streak["streak_df"],
-        x="date",
-        y="streak",
-        markers=True,
+        streak["streak_df"], x="date", y="streak", markers=True,
         title="Chat Streak History",
-        color_discrete_sequence=["#f97316"],
+        color_discrete_sequence=["#F59E0B"],
+    )
+    fig.update_traces(
+        line=dict(width=3),
+        marker=dict(size=6, line=dict(width=1, color="#F59E0B")),
     )
     styles.style_plotly_fig(fig)
     st.plotly_chart(fig, use_container_width=True)
 
-    # ── Relationship badge ────────────────────────────────────────────────────
+    # ── Relationship badge ──
     days = streak["longest_streak"]
     if days >= 365:
-        badge, color = "💍 Soulmates", "#f59e0b"
+        badge, color, desc = "💍 Basically Married", "#F59E0B", "365+ days? Just merge your bank accounts and move in together. This bond is clinically inseparable."
     elif days >= 100:
-        badge, color = "❤️ Best Friends", "#ef4444"
+        badge, color, desc = "❤️ Mutual Obsession", "#EF4444", "Triple digits! Someone is definitely checking their     phone every 5 seconds just to see if a new message dropped."
     elif days >= 30:
-        badge, color = "🤝 Close Friends", "#22c55e"
+        badge, color, desc = "🔥 Heavy Chemistry", "#10B981", "A whole month straight? The tension is real. Someone     definitely blushes when this chat lights up."
     elif days >= 10:
-        badge, color = "😊 Good Connection", "#3b82f6"
+        badge, color, desc = "😏 Separation Anxiety", "#3B82F6", "The polite, boring phase is officially dead. You  guys are hooked on each other's updates."
+    elif days >= 5:
+        badge, color, desc = "🌱 Dangerous Spark", "#94a3b8", "Five days running! There is a little fire cooking    here. Don't ruin the vibe by going quiet now."
     else:
-        badge, color = "🌱 Growing Bond", "#a3a3a3"
+        badge, color, desc = "🪦 Ghosted?", "#6B7280", "Radio silence. Did someone get left on read, or are we  playing hard to get? Go break the ice."
 
-    st.markdown(
-        f"""
-<div style="
-    background: rgba(30,41,59,0.5);
-    border: 1px solid {color};
-    border-radius: 14px;
-    padding: 16px 24px;
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-">
-    <span style="font-size:2rem;">{badge.split()[0]}</span>
-    <div>
-        <div style="font-weight:700; font-size:1.1rem; color:#f1f5f9;">Relationship Consistency</div>
-        <div style="color:{color}; font-weight:600; font-size:1.4rem;">{badge}</div>
+    st.markdown(f"""
+    <div class="cr-metric-card" style="--accent:{color};display:flex;align-items:center;gap:20px;padding:24px 32px;">
+        <span style="font-size:48px;">{badge.split()[0]}</span>
+        <div>
+            <div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:{color};margin-bottom:6px;">
+                RELATIONSHIP CONSISTENCY
+            </div>
+            <div style="font-size:24px;font-weight:900;color:#f1f5f9;margin-bottom:4px;">{badge}</div>
+            <div style="font-size:14px;color:#94a3b8;font-style:italic;">{desc}</div>
+        </div>
     </div>
-</div>
-""",
-        unsafe_allow_html=True,
-    )
+    """, unsafe_allow_html=True)

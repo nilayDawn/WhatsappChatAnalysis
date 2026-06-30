@@ -2,13 +2,15 @@ import streamlit as st
 import ghost_mode
 import styles
 
-
 def render(df):
-    """Renders the Ghosting Analysis page (Group-only)."""
+    """Chapter 7: Ghosting Analysis — Detective case files."""
 
-    st.markdown(
-        '<div class="section-title">👻 Ghosting Analysis</div>',
-        unsafe_allow_html=True,
+    styles.render_chapter_divider("07", "Ghosting Analysis")
+
+    styles.render_section_header(
+        "👻", 
+        "The Disappearance Files",
+        "Detective-grade investigation into every vanishing act and unreplied text."
     )
 
     ghost = ghost_mode.ghosting_analysis(df)
@@ -16,86 +18,122 @@ def render(df):
     if ghost is None:
         st.info("Not enough conversation transitions found for ghost analysis.")
         return
+    # ── Disclaimer Section ──
+    disclaimer_text = (
+        "This algorithm is a cold, heartless robot. It measures raw time gaps between different speakers—it "
+        "cannot read human context."
+        "<ul>"
+        "<li><b>The 'False' Ghost:</b> If someone said <i>'See you tomorrow!'</i> and the chat ended, a new message sent "
+        "3 days later will register as a 3-day ghosting offense for whoever replied next.</li>"
+        "<li><b>The 'Ultra Ghost' & 'Most Ignored' Trap:</b> If you drop a link, a meme, or a closing statement that "
+        "requires zero reply, anyone who drops a completely fresh message days later will be blamed as an "
+        "<b>Ultra Ghoster</b>, while you get crowned as <b>Most Ignored</b>.</li>"
+        "</ul>"
+        "Before you end a friendship or block a number over these metrics, verify your case files! "
+        "Scroll down to the <b>Worst Ghosting Pairs</b> and use the <b>Complete Ghosting Evidence Log</b> to "
+        "see if you were actually left on read or if the conversation had just reached its natural conclusion."
+    )
+    styles.render_disclaimer(
+        title="READ BEFORE ACCUSING ANYONE (The Legal Disclaimer)",
+        text_html=disclaimer_text,
+        icon="🚨",
+        color="#EF4444"
+    )
 
-    # ── Row 1: Biggest Ghoster | Fastest Responder | Ultra Ghost ─────────────
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+
+    # ── Row 1: Top 3 Ghost Metrics ──
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        styles.render_metric_card(
-            "Biggest Ghoster",
-            ghost["biggest_ghoster"],
-            ghost_mode.format_ghost_time(ghost["biggest_ghoster_time"]),
-            icon="👻",
-        )
         ex = ghost["biggest_example"]
-        st.caption(
-            f'💬 {ex["prev_sender"]} ({ex["prev_time"]}): "{str(ex["prev_message"])[:60]}"\n\n'
-            f'↩️ {ex["reply_sender"]} ({ex["reply_time"]}): "{str(ex["reply_message"])[:60]}"'
+        evidence = [
+            "🚨 Wanted for emotional neglect. Basically belongs on a milk carton.",
+            f'💬 {ex["prev_sender"]}: "{str(ex["prev_message"])[:35]}..."',
+            f'↩️ {ex["reply_sender"]}: "{str(ex["reply_message"])[:35]}..."',
+        ]
+        styles.render_ghost_card(
+            icon="👻",
+            title="BIGGEST GHOSTER",
+            suspect=ghost["biggest_ghoster"],
+            avg_time=f"Avg vanishing: {ghost_mode.format_ghost_time(ghost['biggest_ghoster_time'])}",
+            evidence_lines=evidence,
+            color="#06B6D4",
         )
 
     with col2:
-        styles.render_metric_card(
-            "Fastest Responder",
-            ghost["fastest"],
-            ghost_mode.format_ghost_time(ghost["fastest_time"]),
-            icon="⚡",
-        )
         ex = ghost["fastest_example"]
-        st.caption(
-            f'💬 {ex["prev_sender"]} ({ex["prev_time"]}): "{str(ex["prev_message"])[:60]}"\n\n'
-            f'↩️ {ex["reply_sender"]} ({ex["reply_time"]}): "{str(ex["reply_message"])[:60]}"'
+        evidence = [
+            "❤️ Down tremendously. Responds before you can even close the app.",
+            f'💬 {ex["prev_sender"]}: "{str(ex["prev_message"])[:35]}..."',
+            f'↩️ {ex["reply_sender"]}: "{str(ex["reply_message"])[:35]}..."',
+        ]
+        styles.render_ghost_card(
+            icon="⚡",
+            title="FASTEST RESPONDER",
+            suspect=ghost["fastest"],
+            avg_time=f"Panic typing speed: {ghost_mode.format_ghost_time(ghost['fastest_time'])}",
+            evidence_lines=evidence,
+            color="#10B981",
         )
 
     with col3:
-        styles.render_metric_card(
-            "Ultra Ghost (24h+)",
-            ghost["ultra_person"],
-            f"{ghost['ultra_count']} times",
-            icon="💀",
-        )
         if ghost["ultra_example"] is not None:
             ex = ghost["ultra_example"]
-            st.caption(
-                f'💬 {ex["prev_sender"]} ({ex["prev_time"]}): "{str(ex["prev_message"])[:60]}"\n\n'
-                f'↩️ {ex["reply_sender"]} ({ex["reply_time"]}): "{str(ex["reply_message"])[:60]}"'
-            )
+            evidence = [
+                "⚠️ Legally dead. Vanished into thin air for over a full day.",
+                f'💬 {ex["prev_sender"]}: "{str(ex["prev_message"])[:35]}..."',
+                f'↩️ {ex["reply_sender"]}: "{str(ex["reply_message"])[:35]}..."',
+            ]
         else:
-            st.caption("Nobody disappeared for more than 24 hours.")
+            evidence = ["Absolute miracle. Nobody went radio-silent for over 24 hours."]
+            
+        styles.render_ghost_card(
+            icon="💀",
+            title="ULTRA GHOST (24H+)",
+            suspect=ghost["ultra_person"],
+            avg_time=f"{ghost['ultra_count']} straight desertions",
+            evidence_lines=evidence,
+            color="#EF4444",
+        )
 
-    st.markdown("<div style='margin-top:24px'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)
 
-    # ── Row 2: Most Ignored | Longest Ghost ───────────────────────────────────
+    # ── Row 2: Most Ignored + Longest Ghost ──
     col4, col5 = st.columns(2)
 
     with col4:
-        styles.render_metric_card(
-            "Most Ignored",
-            ghost["ignored_person"],
-            f"{ghost['ignored_count']} times",
+        styles.render_ghost_card(
             icon="🥲",
+            title="MOST IGNORED",
+            suspect=ghost["ignored_person"],
+            avg_time=f"{ghost['ignored_count']} times left on read",
+            evidence_lines=[f"💔 Pour one out. Typing sweet entries straight into the void while the chat collective goes blind."],
+            color="#EC4899",
         )
-        st.caption("The universe chose silence.")
 
     with col5:
         longest = ghost["longest"]
-        styles.render_metric_card(
-            "Longest Ghost",
-            f"{longest['prev_sender']} → {longest['reply_sender']}",
-            ghost_mode.format_ghost_time(longest["ghost_seconds"]),
+        styles.render_ghost_card(
             icon="🏆",
-        )
-        st.caption(
-            f'💬 {longest["prev_time"]}: "{str(longest["prev_message"])[:60]}"\n\n'
-            f'↩️ {longest["reply_time"]}: "{str(longest["reply_message"])[:60]}"'
+            title="LONGEST GHOST EVER",
+            suspect=f'{longest["prev_sender"]} → {longest["reply_sender"]}',
+            avg_time=f"Ice age lasted: {ghost_mode.format_ghost_time(longest['ghost_seconds'])}",
+            evidence_lines=[
+                "🕰️ Kingdoms fell and seasons changed before this response dropped:",
+                f'💬 {longest["prev_time"]}: "{str(longest["prev_message"])[:35]}..."',
+                f'↩️ {longest["reply_time"]}: "{str(longest["reply_message"])[:35]}..."',
+            ],
+            color="#F59E0B",
         )
 
-    st.markdown("<div style='margin-top:32px'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:40px'></div>", unsafe_allow_html=True)
 
-    # ── Worst Ghosting Pairs table ────────────────────────────────────────────
-    st.markdown(
-        "<div style='font-weight:600; color:#a5b4fc; font-size:1.05rem; margin-bottom:10px;'>🤝 Worst Ghosting Pairs</div>",
-        unsafe_allow_html=True,
-    )
+    # ── Evidence tables ──
+    
+
+    styles.render_section_header("🤝", "Worst Ghosting Pairs", "Who ignores whom the most frequently")
     st.dataframe(ghost["pair_stats"], use_container_width=True)
 
     with st.expander("📋 View Complete Ghosting Evidence", expanded=False):

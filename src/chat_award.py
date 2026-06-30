@@ -16,7 +16,8 @@ def chat_awards(df):
             'title': '👑 Chatterbox',
             'winner': chatterbox.index[0],
             'value': int(chatterbox.iloc[0]),
-            'suffix': 'messages'
+            'suffix': 'messages',
+            'description': 'The most prolific chatter in the group. Your notifications are constantly buzzing because of this person.'
         }
 
 
@@ -33,7 +34,8 @@ def chat_awards(df):
             'title': '📸 Paparazzi',
             'winner': media.index[0],
             'value': int(media.iloc[0]),
-            'suffix': 'media files'
+            'suffix': 'media files',
+            'description': 'Most media files shared in the chat.The sole reason your phone is always out of storage.'
         }
 
     # Night owl
@@ -50,7 +52,8 @@ def chat_awards(df):
             'title': '🌙 Night Owl',
             'winner': night_count.index[0],
             'value': int(night_count.iloc[0]),
-            'suffix': 'late-night messages'
+            'suffix': 'late-night messages',
+            'description': 'Only wakes up when the rest of the group is asleep. Lives to drop unhinged, 3:00 AM thoughts that ruin your morning notifications.'
         }
 
 
@@ -67,7 +70,8 @@ def chat_awards(df):
             'title': '📝 Essay Writer',
             'winner': avg_words.index[0],
             'value': round(avg_words.iloc[0],1),
-            'suffix': 'words/msg'
+            'suffix': 'words/msg',
+            'description': 'The group\'s most verbose member. Writes long, detailed messages that are often ignored.'
         }
     emoji_count = {}
 
@@ -97,7 +101,8 @@ def chat_awards(df):
             'title': '😂 Emoji King',
             'winner': winner,
             'value': emoji_count[winner],
-            'suffix': 'emojis'
+            'suffix': 'emojis',
+            'description':'The group\'s most expressive member. Uses emojis to convey emotions, reactions, and sometimes entire messages.'
         }
 
 
@@ -131,7 +136,8 @@ def chat_awards(df):
             'title': '🔗 Link Addict',
             'winner': winner,
             'value': url_count[winner],
-            'suffix': 'links'
+            'suffix': 'links',
+            'description': 'The group\'s most connected member. Shares links to articles, videos, and other content, keeping the group informed and entertained.'
         }
 
     return awards

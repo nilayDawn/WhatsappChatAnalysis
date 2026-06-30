@@ -309,11 +309,11 @@ def activity_heatmap(selected_user, df):
 
         for h in range(24):
             if h == 23:
-                periods.append('23-00')
+                periods.append('23 - 00')
             elif h == 0:
-                periods.append('00-1')
+                periods.append('00 - 01')
             else:
-                periods.append(f'{h}-{h+1}')
+                periods.append(f'{h} - {h+1}')
 
         return pd.DataFrame(
             0,

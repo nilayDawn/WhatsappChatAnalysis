@@ -2,19 +2,20 @@ import streamlit as st
 import roast_mode
 import styles
 
+# Color palette for different roast categories
+ROAST_COLORS = [
+    "#EC4899", "#EF4444", "#F59E0B", "#8B5CF6",
+    "#06B6D4", "#10B981", "#3B82F6", "#EC4899",
+]
+
 
 def render(df):
-    """Renders the Group Roast Report page (Group-only)."""
+    """Chapter 6: Roast Report — The funniest section."""
 
-    st.markdown(
-        '<div class="section-title">😂 Group Roast Report</div>',
-        unsafe_allow_html=True,
-    )
+    styles.render_chapter_divider("06", "Roast Report")
 
-    st.markdown(
-        "<p style='color:#94a3b8; margin-bottom:24px;'>AI-generated roasts based on each member's real chat behaviour. No feelings were considered.</p>",
-        unsafe_allow_html=True,
-    )
+    styles.render_section_header("😂", "No Feelings Were Considered",
+                                 "AI-generated roasts based on each member's real chat behaviour")
 
     roasts = roast_mode.roast_mode(df)
 
@@ -26,26 +27,15 @@ def render(df):
     for i, (title, roast) in enumerate(roasts.items()):
         with cols[i % 2]:
             icon = title.split()[0] if title else "😂"
-            styles.render_metric_card(
-                title,
-                roast["winner"],
-                roast["value"],
+            clean_title = title.split(" ", 1)[1] if " " in title else title
+            color = ROAST_COLORS[i % len(ROAST_COLORS)]
+
+            styles.render_roast_card(
                 icon=icon,
+                title=clean_title,
+                winner=roast["winner"],
+                stat=roast["value"],
+                roast_text=roast["roast"],
+                color=color,
             )
-            st.markdown(
-                f"""
-<div style="
-    padding: 12px 16px;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
-    color: #cbd5e1;
-    font-style: italic;
-    background: rgba(30,41,59,0.3);
-    border-left: 3px solid #6366f1;
-    border-radius: 0 10px 10px 0;
-">
-    "{roast['roast']}"
-</div>
-""",
-                unsafe_allow_html=True,
-            )
+            st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)

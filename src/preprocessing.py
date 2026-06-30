@@ -22,7 +22,7 @@ def preprocess(text:str) -> pd.DataFrame:
     df = pd.DataFrame(matches, columns=['Date', 'Time', 'Sender', 'Message'])   
 
     # Drops any row containing these phrases, ignoring uppercase/lowercase
-    df = df[~df['Message'].str.contains('This message was deleted|You deleted this message', case=False, na=False)]
+    df = df[~df['Message'].str.contains('This message was deleted|You deleted this message|This message was edited', case=False, na=False)]
     df['Message'] = df['Message'].str.replace(r'\n', '', regex=True)
 
     # Trim each message to the first 30 words

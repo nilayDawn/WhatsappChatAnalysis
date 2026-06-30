@@ -170,27 +170,17 @@ def late_night_analysis(df):
 
     
     # Personality type
-    
-
     personalities = {}
 
     for user, value in sleep_ratio.items():
-
         if value < 5:
-
-            personalities[user] = "☀️ Human Being"
-
+            personalities[user] = "☀️ Functioning Adult (Boring)"
         elif value < 15:
-
-            personalities[user] = "🦉 Owl"
-
+            personalities[user] = "🦉 Standard Night Owl"
         elif value < 30:
-
-            personalities[user] = "🧟 Zombie"
-
+            personalities[user] = "🧟 Caffeine-Powered Zombie"
         else:
-
-            personalities[user] = "👹 Chaos Goblin"
+            personalities[user] = "👹 Nocturnal Chaos Goblin"
 
     
     # Heatmap
