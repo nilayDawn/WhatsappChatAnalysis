@@ -1,5 +1,5 @@
 import streamlit as st
-import reply_speed
+import features.reply_speed as reply_speed
 import styles
 
 

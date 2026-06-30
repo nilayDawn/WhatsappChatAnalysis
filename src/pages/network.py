@@ -1,7 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import networkx as nx
-import reply_network
+import features.reply_network as reply_network
 import styles
 
 

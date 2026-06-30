@@ -1,5 +1,5 @@
 import streamlit as st
-import roast_mode
+import features.roast_mode as roast_mode
 import styles
 
 # Color palette for different roast categories

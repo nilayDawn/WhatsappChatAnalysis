@@ -1,6 +1,6 @@
 import streamlit as st
 import plotly.express as px
-import chat_streak
+import features.chat_streak as chat_streak
 import styles
 
 

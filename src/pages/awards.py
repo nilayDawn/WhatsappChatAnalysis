@@ -1,5 +1,5 @@
 import streamlit as st
-import chat_award
+import features.chat_award as chat_award
 import styles
 
 

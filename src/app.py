@@ -18,66 +18,29 @@ st.set_page_config(
 
 styles.load_css()
 
-# Page definitions
-CORE_PAGES = {
-    "📊 The Overview":         "overview",
-    "🔤 Slang & Catchphrases": "vocabulary",
-    "🎭 Emoji & Vibe Check":   "emoji_analysis",
-    "📈 When Are We Active?":  "timelines",
-}
-
-GROUP_PAGES = {
-    "🏆 Chat Awards":          "awards",
-    "⚡ Response Time":         "response_time",
-    "🕸️ Reply Network":         "network",
-    "🔥 Chat Streaks":          "streaks",
-    "😂 Roast Report":          "roast",
-    "👻 Ghosting Analysis":     "ghosting",
-    "🌙 Sleep Deprivation":     "sleep",
-}
+# All chapters in order
+ALL_CHAPTERS = [
+    {"label": "📊 The Overview",         "module": "overview",       "group_only": False, "num": "01", "icon": "📊"},
+    {"label": "🔤 Slang & Catchphrases", "module": "vocabulary",     "group_only": False, "num": "02", "icon": "🔤"},
+    {"label": "🎭 Emoji & Vibe Check",   "module": "emoji_analysis", "group_only": False, "num": "03", "icon": "🎭"},
+    {"label": "📈 When Are We Active?",  "module": "timelines",      "group_only": False, "num": "04", "icon": "📈"},
+    {"label": "🏆 Chat Awards",          "module": "awards",         "group_only": True,  "num": "05", "icon": "🏆"},
+    {"label": "⚡ Response Time",         "module": "response_time",  "group_only": True,  "num": "06", "icon": "⚡"},
+    {"label": "🕸️ Reply Network",         "module": "network",        "group_only": True,  "num": "07", "icon": "🕸️"},
+    {"label": "🔥 Chat Streaks",          "module": "streaks",        "group_only": True,  "num": "08", "icon": "🔥"},
+    {"label": "😂 Roast Report",          "module": "roast",          "group_only": True,  "num": "09", "icon": "😂"},
+    {"label": "👻 Ghosting Analysis",     "module": "ghosting",       "group_only": True,  "num": "10", "icon": "👻"},
+    {"label": "🌙 Sleep Deprivation",     "module": "sleep",          "group_only": True,  "num": "11", "icon": "🌙"},
+]
 
 # Initialize session state
 if "uploaded_file" not in st.session_state:
     st.session_state["uploaded_file"] = None
 if "show_analysis" not in st.session_state:
     st.session_state["show_analysis"] = False
-if "active_page" not in st.session_state:
-    st.session_state["active_page"] = "📊 The Overview"
-if "scroll_to_top" not in st.session_state:
-    st.session_state["scroll_to_top"] = False
+if "unlocked_up_to" not in st.session_state:
+    st.session_state["unlocked_up_to"] = 0
 
-# ── Scroll to top trigger (fires at the very start of each run) ──
-if st.session_state.get("scroll_to_top", False):
-    import time
-    _t = int(time.time() * 1000)
-    st.markdown(f"""
-    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7?t={_t}"
-         onerror="this.onerror=null;"
-         onload="
-            (function() {{
-                function doScroll() {{
-                    var targets = [
-                        document.querySelector('.main'),
-                        document.querySelector('[data-testid=\'stMain\']'),
-                        document.querySelector('[data-testid=\'stAppViewContainer\']'),
-                        document.querySelector('.block-container'),
-                        document.documentElement,
-                        document.body
-                    ];
-                    targets.forEach(function(t) {{
-                        if (t) {{ t.scrollTop = 0; if (t.scrollTo) t.scrollTo({{top:0,behavior:'instant'}}); }}
-                    }});
-                    window.scrollTo({{top:0,behavior:'instant'}});
-                }}
-                doScroll();
-                setTimeout(doScroll, 50);
-                setTimeout(doScroll, 150);
-                setTimeout(doScroll, 400);
-            }})();
-         "
-         style="position:fixed;width:0;height:0;opacity:0;pointer-events:none;">
-    """, unsafe_allow_html=True)
-    st.session_state["scroll_to_top"] = False
 
 
 
@@ -235,7 +198,9 @@ text = content.decode("utf-8-sig")
 df = cached_preprocess(text)
 user_list = get_users(df)
 
-# ── Sidebar Navigation ──
+unlocked = st.session_state["unlocked_up_to"]
+
+# ── Sidebar ──
 with st.sidebar:
     st.markdown("""
     <div style="padding:20px 0;text-align:center;">
@@ -262,25 +227,30 @@ with st.sidebar:
 
     st.markdown("<hr style='border-color:rgba(255,255,255,0.06);'>", unsafe_allow_html=True)
 
+    # Progress tracker — computed here after selected_user is known
+    _visible_chapters = ALL_CHAPTERS if selected_user == "All" else [ch for ch in ALL_CHAPTERS if not ch["group_only"]]
+    _total_visible = len(_visible_chapters)
+    _unlocked_visible = sum(1 for ch in _visible_chapters if ALL_CHAPTERS.index(ch) <= unlocked)
+    _pct = int((_unlocked_visible / _total_visible) * 100) if _total_visible > 0 else 0
     st.markdown(
-        "<div style='font-size:0.72rem;font-weight:700;color:#64748b;letter-spacing:.1em;margin-bottom:8px;'>YOUR STORY</div>",
+        f"<div class='cr-progress-label'>📖 Your Progress &nbsp; <span style='color:#8B5CF6;font-weight:900;'>{_unlocked_visible}/{_total_visible}</span></div>"
+        f"<div class='cr-progress-bar-wrap'><div class='cr-progress-bar-fill' style='width:{_pct}%'></div></div>",
         unsafe_allow_html=True,
     )
-    for label in CORE_PAGES:
-        if st.button(label, key=f"nav_{label}", use_container_width=True):
-            st.session_state["active_page"] = label
-            st.session_state["scroll_to_top"] = True
 
-    if selected_user == "All":
-        st.markdown("<hr style='border-color:rgba(255,255,255,0.06);'>", unsafe_allow_html=True)
-        st.markdown(
-            "<div style='font-size:0.72rem;font-weight:700;color:#64748b;letter-spacing:.1em;margin-bottom:8px;'>GROUP CHAPTERS</div>",
-            unsafe_allow_html=True,
+    _items_html = ""
+    for ch in _visible_chapters:
+        idx = ALL_CHAPTERS.index(ch)
+        is_unlocked = idx <= unlocked
+        cls = "unlocked" if is_unlocked else ""
+        check = "✓" if is_unlocked else ""
+        _items_html += (
+            f"<div class='cr-progress-item {cls}'>"
+            f"<div class='cr-progress-check'>{check}</div>"
+            f"<span>{ch['label']}</span>"
+            f"</div>"
         )
-        for label in GROUP_PAGES:
-            if st.button(label, key=f"nav_{label}", use_container_width=True):
-                st.session_state["active_page"] = label
-                st.session_state["scroll_to_top"] = True
+    st.markdown(_items_html, unsafe_allow_html=True)
 
     st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
     st.markdown(
@@ -304,76 +274,102 @@ with st.expander(f"📁 Active Chat: {uploaded_file.name}", expanded=False):
         )
         if change_val is not None:
             st.session_state["uploaded_file"] = change_val
+            st.session_state["unlocked_up_to"] = 0
             st.rerun()
     with col_remove_btn:
         st.markdown("<div style='padding-top:5px;'></div>", unsafe_allow_html=True)
         if st.button("❌ Reset"):
             st.session_state["uploaded_file"] = None
-            st.session_state["active_page"] = "📊 The Overview"
+            st.session_state["unlocked_up_to"] = 0
             st.rerun()
 
-# ── Page routing ──
-if "active_page" not in st.session_state:
-    st.session_state["active_page"] = "📊 The Overview"
+# ── Sequential chapter rendering ──
+import importlib
 
-active = st.session_state["active_page"]
+for i, ch in enumerate(ALL_CHAPTERS):
+    # Only render up to the unlocked chapter
+    if i > unlocked:
+        break
+    # Skip group-only chapters when a specific user is selected
+    if ch["group_only"] and selected_user != "All":
+        continue
 
-if active in GROUP_PAGES and selected_user != "All":
-    st.session_state["active_page"] = "📊 The Overview"
-    active = "📊 The Overview"
+    # Chapter separator (not before the first chapter)
+    if i > 0:
+        st.markdown("""
+        <div class="cr-chapter-sep">
+            <div class="cr-chapter-sep-line"></div>
+            <div class="cr-chapter-sep-dot"></div>
+            <div class="cr-chapter-sep-line"></div>
+        </div>
+        """, unsafe_allow_html=True)
 
-# Breadcrumb
-filter_label = f"👤 {selected_user}" if selected_user != "All" else "👥 All Users"
-st.markdown(f"""
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;
-            border-bottom:1px solid rgba(255,255,255,0.05);">
-    <span style="color:#64748b;font-size:0.85rem;">Chat Rewind</span>
-    <span style="color:#334155;">›</span>
-    <span style="color:#8B5CF6;font-size:0.85rem;font-weight:600;">{active}</span>
-    <span style="margin-left:auto;background:rgba(139,92,246,0.12);
-                 border:1px solid rgba(139,92,246,0.25);border-radius:20px;
-                 padding:3px 14px;font-size:0.78rem;color:#8B5CF6;">{filter_label}</span>
-</div>
-""", unsafe_allow_html=True)
-
-with st.spinner("Loading your story..."):
-    if active in CORE_PAGES:
-        module_name = CORE_PAGES[active]
-        import importlib
-        page_mod = importlib.import_module(f"pages.{module_name}")
-        page_mod.render(selected_user, df)
-    elif active in GROUP_PAGES and selected_user == "All":
-        module_name = GROUP_PAGES[active]
-        import importlib
-        page_mod = importlib.import_module(f"pages.{module_name}")
+    # Render the chapter content
+    page_mod = importlib.import_module(f"pages.{ch['module']}")
+    if ch["group_only"]:
         page_mod.render(df)
+    else:
+        page_mod.render(selected_user, df)
 
-# Bottom Navigation for scrolling experience
-if selected_user == "All":
-    available_pages = list(CORE_PAGES.keys()) + list(GROUP_PAGES.keys())
+# ── Unlock CTA (shown after the last rendered chapter) ──
+next_idx = unlocked + 1
+
+if next_idx < len(ALL_CHAPTERS):
+    next_ch = ALL_CHAPTERS[next_idx]
+
+    if next_ch["group_only"] and selected_user != "All":
+        # Teaser: group chapters need All Users filter
+        st.markdown("""
+        <div class="cr-chapter-sep">
+            <div class="cr-chapter-sep-line"></div>
+            <div class="cr-chapter-sep-dot"></div>
+            <div class="cr-chapter-sep-line"></div>
+        </div>
+        <div class="cr-group-teaser">
+            <div class="cr-group-teaser-icon">👥</div>
+            <div class="cr-group-teaser-text">
+                <b>Group Chapters are waiting!</b><br>
+                Switch the filter to <b>All Users</b> in the sidebar to unlock
+                group analysis chapters like Chat Awards, Ghosting Files, and more.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Unlock CTA
+        st.markdown("""
+        <div class="cr-chapter-sep">
+            <div class="cr-chapter-sep-line"></div>
+            <div class="cr-chapter-sep-dot"></div>
+            <div class="cr-chapter-sep-line"></div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="cr-unlock-cta">
+            <div class="cr-unlock-orb">{next_ch['icon']}</div>
+            <div class="cr-unlock-eyebrow">Chapter {next_ch['num']} Awaits</div>
+            <div class="cr-unlock-title">{next_ch['label']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        col_l, col_c, col_r = st.columns([1, 2, 1])
+        with col_c:
+            if st.button(
+                f"✨ Unlock: {next_ch['label']}",
+                key="unlock_next_chapter",
+                use_container_width=True,
+            ):
+                st.session_state["unlocked_up_to"] = next_idx
+                st.rerun()
 else:
-    available_pages = list(CORE_PAGES.keys())
-
-if active in available_pages:
-    current_index = available_pages.index(active)
-    
-    st.markdown("<div style='margin-top: 60px;'></div>", unsafe_allow_html=True)
-    st.markdown("<hr style='border-color:rgba(255,255,255,0.06); margin-bottom: 28px;'>", unsafe_allow_html=True)
-    
-    col_prev, col_next = st.columns(2, gap="medium")
-    
-    with col_prev:
-        if current_index > 0:
-            prev_page = available_pages[current_index - 1]
-            if st.button(f"👈 Previous: {prev_page}", key="bottom_nav_prev", use_container_width=True):
-                st.session_state["active_page"] = prev_page
-                st.session_state["scroll_to_top"] = True
-                st.rerun()
-                
-    with col_next:
-        if current_index < len(available_pages) - 1:
-            next_page = available_pages[current_index + 1]
-            if st.button(f"Next: {next_page} 👉", key="bottom_nav_next", use_container_width=True):
-                st.session_state["active_page"] = next_page
-                st.session_state["scroll_to_top"] = True
-                st.rerun()
+    # All chapters complete
+    st.markdown("""
+    <div class="cr-chapter-sep">
+        <div class="cr-chapter-sep-line"></div>
+        <div class="cr-chapter-sep-dot"></div>
+        <div class="cr-chapter-sep-line"></div>
+    </div>
+    <div class="cr-completed">
+        <div class="cr-completed-icon">🎉</div>
+        <div class="cr-completed-title">Your Rewind is Complete!</div>
+        <div class="cr-completed-sub">You've explored every chapter of your chat story. Scroll up to revisit any moment.</div>
+    </div>
+    """, unsafe_allow_html=True)

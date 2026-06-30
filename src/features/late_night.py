@@ -169,15 +169,31 @@ def late_night_analysis(df):
     )
 
     
-    # Personality type
+    # Personality type (Fixed Logic)
+    
     personalities = {}
+    total_night_messages = len(night)
 
-    for user, value in sleep_ratio.items():
-        if value < 5:
+    # Iterate through all users in the chat
+    for user in total.index:
+        
+        # Get their raw count of night messages (default to 0 if none)
+        night_msgs = night_total.get(user, 0)
+        
+        # Calculate their percentage of the GROUP'S total night messages
+        if total_night_messages > 0:
+            night_share = (night_msgs / total_night_messages) * 100
+        else:
+            night_share = 0
+
+        # Assign diagnoses based on how much of the night chat they dominate
+        if night_msgs == 0:
+            personalities[user] = "😇 Literal Angel (Sleeps at night)"
+        elif night_share < 10:
             personalities[user] = "☀️ Functioning Adult (Boring)"
-        elif value < 15:
+        elif night_share < 25:
             personalities[user] = "🦉 Standard Night Owl"
-        elif value < 30:
+        elif night_share < 50:
             personalities[user] = "🧟 Caffeine-Powered Zombie"
         else:
             personalities[user] = "👹 Nocturnal Chaos Goblin"

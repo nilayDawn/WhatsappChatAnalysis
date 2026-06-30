@@ -1,5 +1,5 @@
 import streamlit as st
-import ghost_mode
+import features.ghost_mode as ghost_mode
 import styles
 
 def render(df):
