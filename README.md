@@ -4,7 +4,7 @@ Discover the hidden story inside your WhatsApp chats. **Chat Rewind** transforms
 
 🔗 **Live App Link:** [https://whatsapp-chat-analyzer-by-nilaydawn.onrender.com](https://whatsapp-chat-analyzer-by-nilaydawn.onrender.com)
 
-🔗 **Streamlit App Link:** []()
+🔗 **Streamlit App Link:** [https://whatsappchatanalysis-by-nilay-dawn.streamlit.app/](https://whatsappchatanalysis-by-nilay-dawn.streamlit.app/)
 
 ---
 
