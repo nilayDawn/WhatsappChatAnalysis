@@ -12,10 +12,10 @@ ROAST_COLORS = [
 def render(df):
     """Chapter 6: Roast Report — The funniest section."""
 
-    styles.render_chapter_divider("06", "Roast Report")
+    styles.render_chapter_divider("06", "Caracter Report")
 
     styles.render_section_header("😂", "No Feelings Were Considered",
-                                 "AI-generated roasts based on each member's real chat behaviour")
+                                 "Character report based on each member's real chat behaviour")
 
     roasts = roast_mode.roast_mode(df)
 

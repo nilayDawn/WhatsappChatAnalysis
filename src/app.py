@@ -185,6 +185,7 @@ if st.session_state["uploaded_file"] is None or not st.session_state["show_analy
     </div>
     """, unsafe_allow_html=True)
 
+    styles.render_footer()
     st.stop()
 
 
@@ -373,3 +374,6 @@ else:
         <div class="cr-completed-sub">You've explored every chapter of your chat story. Scroll up to revisit any moment.</div>
     </div>
     """, unsafe_allow_html=True)
+
+# Render premium creator footer
+styles.render_footer()
