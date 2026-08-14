@@ -2,7 +2,9 @@
 
 Discover the hidden story inside your WhatsApp chats. **Chat Rewind** transforms raw chat logs into a cinematic, Spotify Wrapped-style storytelling experience. Uncover friendships, analyze emojis, expose ghosters, track daily streaks, and unlock funny achievements.
 
-🔗 **Streamlit App Link:** [https://whatsappchatanalysis-by-nilay-dawn.streamlit.app](https://whatsappchatanalysis-by-nilay-dawn.streamlit.app)
+🔗 **Streamlit App Link:** `https://whatsappchatanalysis-by-nilay-dawn.streamlit.app`
+
+📋 **For Faster Experience, Copy the link above and paste it into a new browser tab to open the app.**
 
 🔗 **Live App Link(Render):** [https://whatsapp-chat-analyzer-by-nilaydawn.onrender.com](https://whatsapp-chat-analyzer-by-nilaydawn.onrender.com)
 
