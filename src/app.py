@@ -7,6 +7,7 @@ sys.path.insert(0, "src")
 
 from preprocessing import preprocess
 import styles
+import features.report_exporter as report_exporter  # Export helper
 
 # Page configuration
 st.set_page_config(
@@ -24,11 +25,11 @@ ALL_CHAPTERS = [
     {"label": "🔤 Slang & Catchphrases", "module": "vocabulary",     "group_only": False, "num": "02", "icon": "🔤"},
     {"label": "🎭 Emoji & Vibe Check",   "module": "emoji_analysis", "group_only": False, "num": "03", "icon": "🎭"},
     {"label": "📈 When Are We Active?",  "module": "timelines",      "group_only": False, "num": "04", "icon": "📈"},
-    {"label": "🏆 Chat Awards",          "module": "awards",         "group_only": True,  "num": "05", "icon": "🏆"},
+    {"label": "🏆 Awards",               "module": "awards",         "group_only": True,  "num": "05", "icon": "🏆"},
     {"label": "⚡ Response Time",         "module": "response_time",  "group_only": True,  "num": "06", "icon": "⚡"},
     {"label": "🕸️ Reply Network",         "module": "network",        "group_only": True,  "num": "07", "icon": "🕸️"},
     {"label": "🔥 Chat Streaks",          "module": "streaks",        "group_only": True,  "num": "08", "icon": "🔥"},
-    {"label": "😂 Roast Report",          "module": "roast",          "group_only": True,  "num": "09", "icon": "😂"},
+    {"label": "📋 Chat Report",          "module": "roast",          "group_only": True,  "num": "09", "icon": "📋"},
     {"label": "👻 Ghosting Analysis",     "module": "ghosting",       "group_only": True,  "num": "10", "icon": "👻"},
     {"label": "🌙 Sleep Deprivation",     "module": "sleep",          "group_only": True,  "num": "11", "icon": "🌙"},
 ]
@@ -131,7 +132,7 @@ if st.session_state["uploaded_file"] is None or not st.session_state["show_analy
         )
         if uploaded is not None:
             st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
-            if st.button("🚀 Start Your Rewind", use_container_width=True):
+            if st.button("Start Analysis", use_container_width=True):
                 st.session_state["uploaded_file"] = uploaded
                 st.session_state["show_analysis"] = True
                 st.rerun()
@@ -154,13 +155,13 @@ if st.session_state["uploaded_file"] is None or not st.session_state["show_analy
     <div class="cr-features-grid">
         <div class="cr-feature-card">
             <div class="cr-feature-icon">🏆</div>
-            <div class="cr-feature-title">Chat Awards</div>
+            <div class="cr-feature-title">Awards</div>
             <div class="cr-feature-desc">Steam-style achievements for your group's most notable personalities.</div>
         </div>
         <div class="cr-feature-card">
-            <div class="cr-feature-icon">😂</div>
-            <div class="cr-feature-title">Roast Report</div>
-            <div class="cr-feature-desc">AI-powered comedic takedowns based on real chat behaviour.</div>
+            <div class="cr-feature-icon">📋</div>
+            <div class="cr-feature-title">Chat Report</div>
+            <div class="cr-feature-desc">Comedic takedowns based on real chat behaviour.</div>
         </div>
         <div class="cr-feature-card">
             <div class="cr-feature-icon">👻</div>
@@ -256,10 +257,20 @@ with st.sidebar:
     st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
     st.markdown(
         f"<div style='background:rgba(255,255,255,0.04);border-radius:12px;padding:10px 14px;"
-        f"font-size:0.8rem;border:1px solid rgba(255,255,255,0.06);'>"
+        f"font-size:0.8rem;border:1px solid rgba(255,255,255,0.06);margin-bottom:12px;'>"
         f"<span style='color:#64748b;'>Messages: </span>"
         f"<span style='color:#8B5CF6;font-weight:700;'>{len(df):,}</span></div>",
         unsafe_allow_html=True,
+    )
+
+    html_report_data = report_exporter.generate_html_report(df, selected_user)
+    st.download_button(
+        label="📥 Download Report (.html)",
+        data=html_report_data,
+        file_name=f"chat_rewind_report_{selected_user}.html",
+        mime="text/html",
+        use_container_width=True,
+        key="sidebar_download_html"
     )
 
 # ── Top bar ──
@@ -371,9 +382,30 @@ else:
     <div class="cr-completed">
         <div class="cr-completed-icon">🎉</div>
         <div class="cr-completed-title">Your Rewind is Complete!</div>
-        <div class="cr-completed-sub">You've explored every chapter of your chat story. Scroll up to revisit any moment.</div>
+        <div class="cr-completed-sub">You've explored every chapter of your chat story. Download your complete report below or scroll up to revisit any moment.</div>
     </div>
     """, unsafe_allow_html=True)
+
+    col_dl1, col_dl2 = st.columns(2)
+    with col_dl1:
+        st.download_button(
+            label="📥 Download Visual Report (.html)",
+            data=html_report_data,
+            file_name=f"chat_rewind_report_{selected_user}.html",
+            mime="text/html",
+            use_container_width=True,
+            key="completion_download_html"
+        )
+    with col_dl2:
+        json_data = report_exporter.generate_json_summary(df, selected_user)
+        st.download_button(
+            label="📊 Download Summary (.json)",
+            data=json_data,
+            file_name=f"chat_rewind_data_{selected_user}.json",
+            mime="application/json",
+            use_container_width=True,
+            key="completion_download_json"
+        )
 
 # Render premium creator footer
 styles.render_footer()

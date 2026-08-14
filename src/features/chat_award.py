@@ -1,7 +1,9 @@
 import emoji
 from urlextract import URLExtract
+import streamlit as st
 
 
+@st.cache_data(show_spinner=False)
 def chat_awards(df):
 
     awards = {}

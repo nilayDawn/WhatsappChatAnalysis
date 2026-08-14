@@ -1,4 +1,5 @@
 import pandas as pd
+import streamlit as st
 
 def format_ghost_time(seconds):
     seconds = int(seconds)
@@ -12,6 +13,7 @@ def format_ghost_time(seconds):
         return f"{hours}h {minutes}m"
     return f"{minutes}m"
 
+@st.cache_data(show_spinner=False)
 def ghosting_analysis(df):
     temp = df.sort_values('DateTime').copy()
 

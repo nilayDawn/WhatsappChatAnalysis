@@ -2,8 +2,12 @@ from urlextract import URLExtract
 from wordcloud import WordCloud
 import pandas as pd
 import emoji
+import streamlit as st
 
 MEDIA_TEXT = '<Media omitted>' 
+
+# Singleton URLExtract instance to avoid re-instantiation overhead
+EXTRACTOR = URLExtract()
 
 # Load stopwords 
 with open('src/full_stopword.txt', 'r', encoding='utf-8') as f:
@@ -18,29 +22,31 @@ def filter_user(df, selected_user):
 
 def create_ngrams(text, n):
     words = str(text).split()
-    # Grab chunks of size 'n' and join them with a space
     return [" ".join(words[i:i+n]) for i in range(len(words) - n + 1)]
 
 
+@st.cache_data(show_spinner=False)
 def fetch_stats(selected_user, df):
-    df = filter_user(df, selected_user)
+    filtered_df = filter_user(df, selected_user)
 
-    # total messages
-    num_messages = df.shape[0]
+    num_messages = filtered_df.shape[0]
 
-    # total words
-    num_words = sum(len(str(message).split()) for message in df['Message'])
+    # Vectorized word count sum if pre-calculated
+    if 'word_count' in filtered_df.columns:
+        num_words = int(filtered_df['word_count'].sum())
+    else:
+        num_words = sum(len(str(message).split()) for message in filtered_df['Message'])
 
-    # media messages
-    num_media_messages = (df['is_media'] == True).sum()
+    # Media messages
+    num_media_messages = int((filtered_df['is_media'] == True).sum()) if 'is_media' in filtered_df.columns else int((filtered_df['Message'] == MEDIA_TEXT).sum())
 
-    # urls
-    extractor = URLExtract()
-    num_urls = sum(len(extractor.find_urls(str(message)))for message in df['Message'])
+    # URLs search
+    num_urls = sum(len(EXTRACTOR.find_urls(str(message))) for message in filtered_df['Message'])
 
     return num_messages, num_words, num_urls, num_media_messages
 
 
+@st.cache_data(show_spinner=False)
 def most_busy_user(df):
     x = df['Sender'].value_counts().head()
 
@@ -86,6 +92,7 @@ def create_wordcloud(selected_user, df):
     return df_wc
 
 
+@st.cache_data(show_spinner=False)
 def create_wordcloud_bigrams(selected_user, df):
 
     temp = df[df['Message'] != MEDIA_TEXT].copy()
@@ -125,6 +132,7 @@ def create_wordcloud_bigrams(selected_user, df):
     return df_wc
 
 
+@st.cache_data(show_spinner=False)
 def most_common_words(selected_user, df):
 
     temp = df[df['Message'] != MEDIA_TEXT].copy()
@@ -201,6 +209,7 @@ def most_common_words(selected_user, df):
     return most_common_df, all_words_df
 
 
+@st.cache_data(show_spinner=False)
 def emoji_helper(selected_user, df):
 
     temp = df.copy()
@@ -242,6 +251,7 @@ def emoji_helper(selected_user, df):
     return emoji_counts
 
 
+@st.cache_data(show_spinner=False)
 def monthly_timeline(selected_user, df):
 
     df = filter_user(df, selected_user)
@@ -263,6 +273,7 @@ def monthly_timeline(selected_user, df):
     return timeline
 
 
+@st.cache_data(show_spinner=False)
 def daily_timeline(selected_user, df):
 
     df = filter_user(df, selected_user)
@@ -276,6 +287,7 @@ def daily_timeline(selected_user, df):
     return daily_timeline
 
 
+@st.cache_data(show_spinner=False)
 def week_activity_map(selected_user, df):
 
     df = filter_user(df, selected_user)
@@ -283,6 +295,7 @@ def week_activity_map(selected_user, df):
     return df['day_name'].value_counts()
 
 
+@st.cache_data(show_spinner=False)
 def month_activity_map(selected_user, df):
 
     df = filter_user(df, selected_user)
@@ -290,6 +303,7 @@ def month_activity_map(selected_user, df):
     return df['month'].value_counts()
 
 
+@st.cache_data(show_spinner=False)
 def activity_heatmap(selected_user, df):
 
     df = filter_user(df, selected_user)

@@ -1,7 +1,9 @@
 import pandas as pd
 import emoji
+import streamlit as st
 
 
+@st.cache_data(show_spinner=False)
 def roast_mode(df):
 
     if df.empty:

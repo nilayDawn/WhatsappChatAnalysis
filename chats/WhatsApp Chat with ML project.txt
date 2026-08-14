@@ -1,0 +1,1678 @@
+18/03/26, 11:05 am - Messages and calls are end-to-end encrypted. Only people in this chat can read, listen to, or share them. *Learn more*
+18/03/26, 11:05 am - Srijata BWU created group "ML project"
+18/03/26, 11:05 am - Srijata BWU added you
+18/03/26, 7:42 pm - Srijata BWU: https://www.kaggle.com/datasets/paultimothymooney/blood-cells
+18/03/26, 7:42 pm - Srijata BWU: dataset source page
+18/03/26, 7:45 pm - Srijata BWU: <Media omitted>
+18/03/26, 7:45 pm - Srijata BWU: https://colab.research.google.com/drive/1Z9R3U3dQ4bYSp9zyKvk3BLJBEXsfC2El?usp=sharing
+18/03/26, 7:45 pm - Srijata BWU: updated
+18/03/26, 7:47 pm - Srijata BWU: <Media omitted>
+18/03/26, 7:47 pm - Srijata BWU: <Media omitted>
+18/03/26, 7:47 pm - Srijata BWU: fine tune version
+18/03/26, 7:52 pm - Srijata BWU: @⁨Nilay⁩ @⁨SUDIP⁩
+18/03/26, 7:52 pm - Srijata BWU: Dui jon ke ekta kaaj diyechhilam
+18/03/26, 7:52 pm - Srijata BWU: @⁨Aman⁩ thora sa "aram" se baat kar lo to inn dono se
+18/03/26, 8:46 pm - Srijata BWU: <Media omitted>
+18/03/26, 8:51 pm - Srijata BWU: TORA DEEEE REEEE
+18/03/26, 8:51 pm - Srijata BWU: KOBE KORBI?????
+18/03/26, 8:51 pm - Aman: Nilay ko bol diye h
+18/03/26, 8:51 pm - Srijata BWU: Okayyy
+22/03/26, 9:43 pm - Aman: <Media omitted>
+22/03/26, 9:51 pm - Aman: https://colab.research.google.com/drive/12VctHqVE0k6PT-nq7olk0VG9QCR3bP6L?usp=sharing
+22/03/26, 9:56 pm - Srijata BWU: ## EfficientNet-B0
+
+![Image](https://www.researchgate.net/publication/356981443/figure/fig3/AS%3A1100238135791616%401639328621231/Architecture-of-EfficientNet-B0-with-MBConv-as-Basic-building-blocks.png)
+
+![Image](https://www.researchgate.net/publication/369111273/figure/fig3/AS%3A11431281249960036%401717731861733/The-structure-of-EfficientNet-b0.tif)
+
+![Image](https://www.researchgate.net/publication/390530444/figure/fig3/AS%3A11431281355752568%401743926467520/Architecture-of-EfficientNetB0-with-MBConv-The-model-begins-with-a-standard-33.png)
+
+![Image](https://www.researchgate.net/publication/393772237/figure/fig4/AS%3A11431281547954412%401752722066986/Architecture-of-EfficientNet-B0-with-MBConv-as-basic-building-blocks.png)
+
+EfficientNet-B0 is a **convolutional neural network (CNN) architecture designed for highly efficient image classification**. It was introduced by researchers at **Google Brain** in the paper **EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks** by **Mingxing Tan** and **Quoc V. Le** (2019).
+
+The key idea behind EfficientNet is **achieving better accuracy with fewer parameters and lower computation cost** by scaling network dimensions **in a balanced way**.
+
+---
+
+# 1. Why EfficientNet Was Created
+
+Before EfficientNet, CNN scaling usually followed **one dimension only**:
+
+| Method            | What is increased  |
+| ----------------- | ------------------ |
+| Deeper networks   | Number of layers   |
+| Wider networks    | Number of channels |
+| Higher resolution | Input image size   |
+
+Examples:
+
+* ResNet → deeper
+* VGGNet → wider
+* Inception → mixed scaling
+
+Problem:
+Scaling only one dimension **wastes computation and leads to diminishing returns**.
+
+EfficientNet proposes **compound scaling**, where depth, width, and resolution are increased **together in a principled way**.
+
+---
+
+# 2. Compound Scaling Method
+
+EfficientNet introduces a scaling formula:
+
+* Depth → how many layers
+* Width → channels per layer
+* Resolution → image size
+
+Scaling rule:
+
+[
+depth = \alpha^\phi
+]
+
+[
+width = \beta^\phi
+]
+
+[
+resolution = \gamma^\phi
+]
+
+Subject to:
+
+[
+\alpha \times \beta^2 \times \gamma^2 \approx 2
+]
+
+Where:
+
+* **α** → depth coefficient
+* **β** → width coefficient
+* **γ** → resolution coefficient
+* **φ** → scaling factor
+
+This ensures **balanced growth of the network**.
+
+---
+
+# 3. EfficientNet Family
+
+EfficientNet-B0 is the **baseline model**. Larger models are scaled versions.
+
+| Model           | Input Size | Params | Top-1 Accuracy |
+| --------------- | ---------- | ------ | -------------- |
+| EfficientNet-B0 | 224×224    | 5.3M   | ~77%           |
+| EfficientNet-B1 | 240×240    | 7.8M   | ~79%           |
+| EfficientNet-B2 | 260×260    | 9.2M   | ~80%           |
+| EfficientNet-B3 | 300×300    | 12M    | ~81.6%         |
+| EfficientNet-B4 | 380×380    | 19M    | ~83%           |
+| EfficientNet-B5 | 456×456    | 30M    | ~84%           |
+| EfficientNet-B6 | 528×528    | 43M    | ~84.8%         |
+| EfficientNet-B7 | 600×600    | 66M    | ~85%           |
+
+EfficientNet-B0 is the **starting architecture discovered via Neural Architecture Search (NAS)**.
+
+---
+
+# 4. EfficientNet-B0 Architecture
+
+Input: **224 × 224 × 3 image**
+
+Structure overview:
+
+| Stage  | Operator    | Resolution | Channels | Layers |
+| ------ | ----------- | ---------- | -------- | ------ |
+| Stem   | Conv3×3     | 224×224    | 32       | 1      |
+| Block1 | MBConv1, k3 | 112×112    | 16       | 1      |
+| Block2 | MBConv6, k3 | 112×112    | 24       | 2      |
+| Block3 | MBConv6, k5 | 56×56      | 40       | 2      |
+| Block4 | MBConv6, k3 | 28×28      | 80       | 3      |
+| Block5 | MBConv6, k5 | 14×14      | 112      | 3      |
+| Block6 | MBConv6, k5 | 14×14      | 192      | 4      |
+| Block7 | MBConv6, k3 | 7×7        | 320      | 1      |
+| Head   | Conv1×1     | 7×7        | 1280     | 1      |
+| Output | Dense       | —          | Classes  | —      |
+
+---
+
+# 5. MBConv Block (Core Building Unit)
+
+EfficientNet uses **Mobile Inverted Bottleneck Convolution (MBConv)** from **MobileNetV2**.
+
+MBConv structure:
+
+1. **Expansion layer (1×1 conv)**
+2. **Depthwise convolution**
+3. **Squeeze-and-Excitation (SE) attention**
+4. **Projection layer (1×1 conv)**
+5. **Skip connection**
+
+Advantages:
+
+* fewer parameters
+* efficient computation
+* improved feature representation
+
+---
+
+# 6. Squeeze-and-Excitation (SE) Module
+
+EfficientNet integrates **SE attention blocks**.
+
+Steps:
+
+1. Global average pooling
+2. Dense reduction
+3. Dense expansion
+4. Channel-wise multiplication
+
+Purpose:
+
+* Learns **which channels are important**
+* Improves feature representation
+
+---
+
+# 7. Key Characteristics of EfficientNet-B0
+
+**Parameter count**
+
+≈ **5.3 million**
+
+**FLOPs**
+
+≈ **0.39 billion**
+
+**Accuracy**
+
+≈ **76–77% Top-1 on ImageNet**
+
+**Advantages**
+
+* High accuracy
+* Low parameters
+* Fast inference
+* Suitable for mobile devices
+
+---
+
+# 8. Training Techniques Used
+
+EfficientNet used several optimization tricks:
+
+• **AutoAugment**
+• **Dropout (0.2)**
+• **Swish activation function**
+• **Batch Normalization**
+• **Stochastic Depth**
+
+Activation function:
+
+[
+Swish(x) = x \cdot \sigma(x)
+]
+
+---
+
+# 9. Why EfficientNet-B0 Became Popular
+
+Reasons:
+
+1. **Better accuracy-to-parameter ratio**
+2. **Efficient for edge devices**
+3. **Good transfer learning performance**
+4. **Simple scaling method**
+
+Compared to older networks:
+
+| Model           | Params | Accuracy |
+| --------------- | ------ | -------- |
+| VGG16           | 138M   | 71%      |
+| ResNet50        | 25M    | 76%      |
+| EfficientNet-B0 | 5.3M   | 77%      |
+
+So it achieves **higher accuracy with far fewer parameters**.
+
+---
+
+# 10. Applications
+
+EfficientNet-B0 is widely used for:
+
+**Computer Vision**
+
+* image classification
+* object detection backbone
+* segmentation
+
+**Medical AI**
+
+* cancer detection
+* blood cell classification
+* MRI analysis
+
+**Industrial AI**
+
+* defect detection
+* face recognition
+* plant disease detection
+
+Your **blood cell classification project** could easily use EfficientNet-B0 as a backbone.
+
+---
+
+# 11. Transfer Learning with EfficientNet-B0
+
+Typical workflow:
+
+1. Load pretrained model
+2. Replace classification head
+3. Freeze base layers
+4. Fine-tune
+
+Example (PyTorch):
+
+```python
+from torchvision.models import efficientnet_b0
+import torch.nn as nn
+
+model = efficientnet_b0(pretrained=True)
+
+model.classifier[1] = nn.Linear(1280, num_classes)
+```
+
+---
+
+# 12. Limitations
+
+Despite being efficient:
+
+• Still CNN-based (transformers now dominate)
+• Requires large datasets for best results
+• Higher versions (B6-B7) are computationally heavy
+
+Newer versions:
+
+* EfficientNetV2
+* Vision Transformers
+
+---
+
+# 13. Summary
+
+EfficientNet-B0 is:
+
+* the **baseline model of the EfficientNet family**
+* discovered via **Neural Architecture Search**
+* built using **MBConv + SE blocks**
+* scaled using **compound scaling**
+* highly **efficient and accurate**
+
+It became one of the **most influential CNN architectures after ResNet**.
+
+-
+23/03/26, 12:24 am - Srijata BWU: I went through your presentation. Here is a **clear, professional slide-by-slide speech script** you can present during the PPT. It is written so that it sounds natural when spoken, not like you are reading text.
+
+---
+
+# Slide 1 — Title Slide
+
+**Speech**
+
+Good morning everyone.
+
+Today our team is presenting our project titled **“Automated Complete Blood Count Analyzer using Deep Learning.”**
+
+This project focuses on developing an **AI-based system that can automatically detect, classify, and analyze white blood cells from microscopic blood images.**
+
+The goal is to support medical professionals by reducing manual workload and generating a **CBC-style diagnostic report automatically.**
+
+Our team members are **Srijata Moitra, Sanchita Kandar, Nilay Dawn, Sudip Douli, and Aman Prasad.** 
+
+---
+
+# Slide 2 — Project Introduction
+
+**Speech**
+
+The Complete Blood Count, commonly called **CBC**, is one of the most frequently performed medical laboratory tests.
+
+In this project, we propose an **AI-powered system that analyzes microscopic blood smear images and automatically performs white blood cell classification and differential counting.**
+
+Using **deep learning techniques**, the system can identify different types of white blood cells and generate a **clinical interpretation similar to a CBC report.**
+
+The objective is to assist laboratories by making blood analysis **faster, more accurate, and more consistent.** 
+
+---
+
+# Slide 3 — Problem Statement
+
+**Speech**
+
+Let us first understand the problem that motivated this project.
+
+Traditional blood smear examination requires **expert pathologists to manually examine thousands of cells under a microscope.** This process is extremely **time-consuming and labor-intensive.**
+
+Another challenge is **diagnostic accuracy.** Differential white blood cell counting is essential for detecting **infections, immune disorders, and blood diseases.** Even small errors may affect patient diagnosis.
+
+Additionally, manual counting can lead to **inter-observer variability**, meaning different experts may produce slightly different results.
+
+Therefore, our goal is to build an **AI-based automated system that can analyze blood cell images and generate a comprehensive CBC-style report with clinical interpretation.** 
+
+---
+
+# Slide 4 — Project Objectives
+
+**Speech**
+
+To solve this problem, our project focuses on four main objectives.
+
+First, **Cell Classification.**
+The system must automatically classify white blood cells into different categories using deep learning.
+
+Second, **Differential Counting.**
+Once cells are classified, the system calculates the **percentage distribution of each cell type**, which is a key part of CBC analysis.
+
+Third, **Report Generation.**
+The system automatically generates a **structured medical-style report** that can be used for documentation.
+
+Finally, **Clinical Interpretation.**
+Based on the results, the system provides a **possible clinical explanation** that may assist medical professionals during diagnosis.
+
+Together, these objectives allow the system to perform **end-to-end automated blood cell analysis.** 
+
+---
+
+# Slide 5 — Dataset Used
+
+**Speech**
+
+For training our model, we used the **Blood Cells Dataset created by Paul Timothy Mooney, available on Kaggle.**
+
+This dataset contains **more than 12,000 labeled microscopic blood cell images**, which makes it suitable for deep learning training.
+
+The dataset includes **four major types of white blood cells:**
+
+* Eosinophils
+* Lymphocytes
+* Monocytes
+* Neutrophils
+
+Each of these cells has unique morphological characteristics that help doctors identify various medical conditions.
+
+The dataset is also **well-balanced and high quality**, which improves the performance and reliability of our machine learning model. 
+
+---
+
+# Slide 6 — Data Processing Pipeline
+
+**Speech**
+
+Before training the model, the data goes through several processing stages.
+
+First is **Image Input**, where microscopic blood smear images are loaded into the system.
+
+Next comes **Preprocessing**, where we normalize the images, reduce noise, and enhance image quality so the model can learn better features.
+
+Then we apply **Data Augmentation**, such as image rotation, flipping, and color variation. This helps increase dataset diversity and prevents overfitting.
+
+After preprocessing, the images are used for **Model Training**, where the neural network learns patterns of different white blood cells.
+
+Finally, we evaluate the model using **validation and testing datasets** to measure its performance. 
+
+---
+
+# Slide 7 — Model Architecture
+
+**Speech**
+
+For our deep learning model, we selected **EfficientNet-B0** as the base architecture.
+
+EfficientNet is known for achieving **high accuracy while maintaining computational efficiency.** It uses a technique called **compound scaling**, which balances network depth, width, and resolution.
+
+We used **Transfer Learning**, meaning the model was initialized with weights trained on the **ImageNet dataset**. This allows the network to reuse learned visual features.
+
+We then modified the **final classification layer** to classify the four white blood cell categories.
+
+Finally, we performed **fine-tuning** so that the model adapts specifically to the morphological features of blood cells. 
+
+---
+
+# Slide 8 — Training Strategy
+
+**Speech**
+
+To achieve better model performance, we used a structured training strategy.
+
+First, we followed a **two-stage training approach.**
+Initially, we trained only the classifier layer while freezing the base network. After that, we fine-tuned the entire model using a lower learning rate.
+
+Second, we applied **extensive data augmentation** such as rotation, zoom, brightness changes, and color adjustments to improve generalization.
+
+Third, we used **regularization techniques** including label smoothing and weight decay to reduce overfitting.
+
+Finally, we evaluated the model using multiple performance metrics including **accuracy, precision, recall, and F1-score** to ensure reliable medical predictions. 
+
+---
+
+# Slide 9 — Automated CBC System Pipeline
+
+**Speech**
+
+Now let us look at how the complete system works.
+
+The pipeline begins with **Blood Image Capture**, where microscopic images of blood smears are collected.
+
+Next is **Cell Detection**, where the system identifies individual cells within the image.
+
+After that, the deep learning model performs **Classification**, determining the type of each white blood cell.
+
+The system then performs **Counting**, calculating the number of cells in each category.
+
+Using these counts, it calculates **percentage distributions** for each cell type.
+
+Finally, the system generates a **complete CBC-style report along with clinical interpretation.** 
+
+---
+
+# Slide 10 — Example Output Report
+
+**Speech**
+
+This slide shows an example of the output generated by the system.
+
+The model detected **96 total white blood cells** in the image sample.
+
+The distribution was calculated as:
+
+* Neutrophils: 57 percent
+* Lymphocytes: 29 percent
+* Monocytes: 8 percent
+* Eosinophils: 6 percent
+
+Based on these results, the system provides a **clinical interpretation**, indicating that the cell distribution falls within normal ranges.
+
+Such automated reports can significantly help laboratories by providing **quick preliminary analysis for medical experts.** 
+
+---
+
+# Slide 11 — Future Work
+
+**Speech**
+
+Although the current system works effectively, there are several ways it can be improved.
+
+First, we plan to integrate **advanced object detection models like YOLO** to automatically locate cells in large microscopic images.
+
+Second, we plan to build a **web-based application** where users can upload blood smear images and receive instant analysis reports.
+
+Third, we aim to incorporate **Explainable AI techniques**, such as Grad-CAM visualization, to show which parts of the image influenced the model’s decision.
+
+Finally, we hope to integrate this system with **hospital laboratory information systems**, allowing real-time deployment in clinical environments. 
+
+---
+
+# Slide 12 — Thank You
+
+**Speech**
+
+In conclusion, this project demonstrates how **deep learning can assist medical diagnostics by automating blood cell analysis.**
+
+By combining **image processing, neural networks, and clinical reporting**, we developed a system that can classify white blood cells and generate CBC-style reports efficiently.
+
+We believe such AI tools can significantly **support healthcare professionals and improve diagnostic workflows.**
+
+Thank you for your attention.
+We would be happy to answer any questions.
+23/03/26, 8:37 am - Sanchita BWU: Data set used theke ka bolbe ?
+23/03/26, 9:02 am - Srijata BWU: Nilay
+23/03/26, 9:02 am - Sanchita BWU: Okay
+23/03/26, 1:15 pm - Aman: Use YOLO
+29/03/26, 6:41 pm - Aman: https://discord.gg/JAgkFQ3A
+29/03/26, 6:41 pm - Aman: @⁨SUDIP⁩ join kr discord server
+29/03/26, 10:12 pm - Aman: <Media omitted>
+29/03/26, 10:12 pm - Aman: @⁨all⁩ jaldi aao sab
+29/03/26, 10:12 pm - Sanchita BWU: Thori time de do
+29/03/26, 10:12 pm - Srijata BWU: Abeee khete jabo ami
+29/03/26, 10:13 pm - Sanchita BWU: Ranna korchi ami
+29/03/26, 10:13 pm - Sanchita BWU: Hye geche dara
+29/03/26, 10:13 pm - Sanchita BWU: Join korchi
+29/03/26, 10:13 pm - Aman: <Media omitted>
+29/03/26, 10:22 pm - Aman: This message was deleted
+29/03/26, 10:22 pm - Aman: <Media omitted>
+29/03/26, 10:47 pm - Aman: Sanchita 1 to 3
+Nilay 4 to 5
+Aman 6 to 7
+Srijata 8 to 9
+Sudip 10 to 12
+29/03/26, 10:47 pm - Aman: @⁨Nilay⁩ dekhlena fir change kiye h
+29/03/26, 10:47 pm - Aman: 2 min me updated ppt de rahe h
+29/03/26, 10:50 pm - Aman: https://colab.research.google.com/drive/12VctHqVE0k6PT-nq7olk0VG9QCR3bP6L?usp=sharing
+29/03/26, 10:52 pm - Aman: <Media omitted>
+29/03/26, 10:52 pm - Srijata BWU: 🪽
+29/03/26, 11:48 pm - Aman: <Media omitted>
+29/03/26, 11:48 pm - Aman: super final version
+30/03/26, 5:23 pm - SUDIP: Jokhon attandance nibe aktu group e bole dis toh @⁨Sanchita BWU⁩ .. <This message was edited>
+30/03/26, 5:23 pm - SUDIP: @⁨Aman⁩
+30/03/26, 5:25 pm - Nilay: Hello.....bolchi ajker jonno keu amar attendance ta diye de na.....network problem korche, ami join hoye thakchi
+30/03/26, 5:25 pm - Nilay: @⁨Aman⁩ de dega na phir!
+30/03/26, 5:26 pm - Aman: Ha
+30/03/26, 5:26 pm - Sanchita BWU: Okay
+30/03/26, 5:26 pm - Sanchita BWU: Okay
+30/03/26, 5:57 pm - Sanchita BWU: Attendance nebe
+30/03/26, 5:57 pm - Sanchita BWU: Aii re sob
+02/04/26, 9:37 am - Nilay: <Media omitted>
+02/04/26, 9:37 am - Nilay: Ki sundoor team amar 🥲
+02/04/26, 9:39 am - Sanchita BWU: 🤣🤣🤣🤣
+02/04/26, 9:39 am - Sanchita BWU: Fahhhh
+02/04/26, 9:43 am - SUDIP: @⁨Sanchita BWU⁩ team leader 😱
+02/04/26, 9:44 am - Srijata BWU: Achha amar ki hobe?
+02/04/26, 9:44 am - Srijata BWU: Amar oboshtha to sob theke kharap
+02/04/26, 9:44 am - SUDIP: Tui Akai toh kaj koris tor team liye ki hbe one lady army 🪖
+02/04/26, 9:45 am - SUDIP: Sala oder 1 joner satheo mne hoy to kotha boluni
+02/04/26, 9:45 am - Sanchita BWU: Tuii team leader ami kichu jnina
+02/04/26, 9:46 am - Srijata BWU: Madhuri achhe 😂
+02/04/26, 9:46 am - SUDIP: ☹️
+02/04/26, 9:46 am - Nilay: Eta ki marks add hoy!?
+02/04/26, 10:53 am - Sanchita BWU: 
+02/04/26, 10:53 am - Sanchita BWU: <Media omitted>
+02/04/26, 10:53 am - Sanchita BWU: <Media omitted>
+02/04/26, 1:37 pm - Srijata BWU: Uhh huhhh
+02/04/26, 1:37 pm - Srijata BWU: Sudip pelo red hearts
+02/04/26, 1:37 pm - Srijata BWU: Ami pelam red hearts
+02/04/26, 1:37 pm - Srijata BWU: Aman bechhara
+02/04/26, 1:38 pm - Sanchita BWU: De di
+02/04/26, 1:38 pm - SUDIP: Kintu akta kotha janar chilo 😓
+02/04/26, 1:38 pm - Sanchita BWU: Bolun
+02/04/26, 1:38 pm - SUDIP: Ki hoye6e sobai congratulations janachhe toke ,?
+02/04/26, 1:39 pm - SUDIP: 😶
+02/04/26, 1:39 pm - Sanchita BWU: 😒😒
+02/04/26, 1:39 pm - Srijata BWU: Eta e baki chhilo re 😂
+02/04/26, 1:39 pm - Sanchita BWU: Eta ki
+02/04/26, 1:39 pm - Sanchita BWU: Mne ta ki
+02/04/26, 1:39 pm - SUDIP: Seriously jnina bolna
+02/04/26, 1:39 pm - Sanchita BWU: Ee vaii eta ka
+02/04/26, 1:39 pm - Srijata BWU: Honuman
+02/04/26, 1:39 pm - Sanchita BWU: Eke group er baire fele de 😑😑@⁨SUDIP⁩
+02/04/26, 1:40 pm - SUDIP: Aree bolna re vai 😢
+02/04/26, 1:40 pm - Sanchita BWU: <Media omitted>
+02/04/26, 1:40 pm - Aman: NASA me job mila
+02/04/26, 1:41 pm - SUDIP: Ohhh ata group diye6e na official group e khula hoyni 😓
+02/04/26, 1:41 pm - SUDIP: Congratulations 🎉🎉🎆 @⁨Sanchita BWU⁩
+02/04/26, 1:41 pm - SUDIP: Rege gelu naki re vai @⁨Sanchita BWU⁩
+02/04/26, 1:42 pm - Sanchita BWU: Hm cold drink khawabi tbe kotha bolbo
+02/04/26, 1:42 pm - Sanchita BWU: Moron
+02/04/26, 1:42 pm - Sanchita BWU: 🤣🤣
+02/04/26, 1:43 pm - SUDIP: 😶 akhon weather khub kharap thanda gorom mise cholche weather ta akhon thanda khele sordi Hye jbe . Ami karor kharap chaina thanda khele gola dhore jbe .🤗
+02/04/26, 1:44 pm - Sanchita BWU: Jah baba
+02/04/26, 1:44 pm - Sanchita BWU: Tuii Kobe theke ato vabis
+02/04/26, 1:44 pm - SUDIP: 2004 theke
+02/04/26, 1:44 pm - Sanchita BWU: 🤣🤣🤣
+02/04/26, 1:45 pm - Sanchita BWU: Tahole coffee
+02/04/26, 1:45 pm - Sanchita BWU: Gorome coffee jai hok mara jbo gorome but adjust kore nebo
+02/04/26, 1:45 pm - Sanchita BWU: Group er sobai ka coffee
+02/04/26, 1:46 pm - SUDIP: Vai tor achievement holo tui sobaike khaoya 💯🌟
+02/04/26, 1:46 pm - SUDIP: Tue day tor torof theke thole sobai ke treat 😶‍🌫️🤪
+02/04/26, 1:46 pm - Sanchita BWU: Ami toh khawaboi ...tuii disappoint korechis taii ota tor punishment
+02/04/26, 1:47 pm - Sanchita BWU: Tuesday jboi na 🤭🤭
+02/04/26, 1:47 pm - Sanchita BWU: Tokhon
+02/04/26, 1:47 pm - SUDIP: Areee vai sorry dekheni group ta tokhon .
+02/04/26, 1:47 pm - SUDIP: <Media omitted>
+02/04/26, 1:47 pm - Sanchita BWU: Chagla
+02/04/26, 1:47 pm - Sanchita BWU: <Media omitted>
+02/04/26, 1:48 pm - SUDIP: <Media omitted>
+07/04/26, 6:23 pm - SUDIP: Vai log @⁨Aman⁩ @⁨Sanchita BWU⁩ @⁨Srijata BWU⁩ warehouse e 5 joner group thakbe ai group tai thakuk thole. Friday te absent thakbo toh group e entry koriye dis . 🙃
+07/04/26, 6:24 pm - Srijata BWU: 👏🏻
+07/04/26, 6:24 pm - Srijata BWU: PBL kaun likhega?
+07/04/26, 6:24 pm - SUDIP: Nilay
+07/04/26, 6:24 pm - Srijata BWU: Waaah
+07/04/26, 6:24 pm - Srijata BWU: Aur banyega kaun ?
+07/04/26, 6:24 pm - Srijata BWU: Model?
+07/04/26, 6:24 pm - SUDIP: Srijata
+07/04/26, 6:24 pm - Srijata BWU: Waah bhai Waah
+07/04/26, 6:25 pm - SUDIP: <Media omitted>
+07/04/26, 6:43 pm - Nilay: <Media omitted>
+07/04/26, 6:44 pm - Srijata BWU: <Media omitted>
+07/04/26, 6:46 pm - Sanchita BWU: Srijata inner voice 🤣
+07/04/26, 6:47 pm - Srijata BWU: Ekdom
+09/04/26, 8:13 pm - Srijata BWU: Kaal ke ke college jabi?
+09/04/26, 8:13 pm - Sanchita BWU: Hum
+09/04/26, 8:13 pm - Sanchita BWU: Baki r keo asbe na
+09/04/26, 8:13 pm - Srijata BWU: Eka ja tahole
+09/04/26, 8:13 pm - Srijata BWU: Ami ar jabo na
+09/04/26, 8:13 pm - Sanchita BWU: Ami ppt dite jbo
+09/04/26, 8:14 pm - Sanchita BWU: Keo asis na ..Ami eka sir r mam der ppt debo
+09/04/26, 8:14 pm - Sanchita BWU: Keo sonar thakbe na
+09/04/26, 8:14 pm - Srijata BWU: Best of luck amar NOC ta niye nish to piyali ma'am er kachh theke bolbi amar jor hoyechhe ar ashte parbo na
+09/04/26, 8:14 pm - Sanchita BWU: Achha
+09/04/26, 8:14 pm - Sanchita BWU: Sobar jor hoye geche
+10/04/26, 10:55 am - Srijata BWU: @⁨Aman⁩ @⁨Sanchita BWU⁩ sem exam nahi doge kya?
+10/04/26, 10:57 am - Sanchita BWU: Kyu
+10/04/26, 10:57 am - Srijata BWU: <Media omitted>
+10/04/26, 10:58 am - Nilay: Porsu theke exam from fill up start hoye gache ...  korisni
+10/04/26, 11:07 am - Sanchita BWU: Portal theke kore toh ?
+10/04/26, 11:14 am - Nilay: Hm
+10/04/26, 12:01 pm - Aman: Ho gaya
+10/04/26, 12:14 pm - Srijata BWU: Good
+10/04/26, 8:55 pm - Srijata BWU: https://www.linkedin.com/posts/srijata-moitra-a455062ba_nextjs-fullstackdevelopment-ai-activity-7448389902817460225-NSkN?utm_source=social_share_send&utm_medium=android_app&rcm=ACoAAEybClUBUfzRBYFbZNZm8krOlcAvMwjyYcM&utm_campaign=copy_link
+10/04/26, 8:55 pm - Srijata BWU: Bhagwaan ke waaste thora kuchh thoughts bata dijiye 🙏🏻
+10/04/26, 8:55 pm - Srijata BWU: @⁨all⁩
+15/04/26, 12:30 am - Srijata BWU: Hello?
+15/04/26, 12:30 am - Sanchita BWU: Bolun miss
+15/04/26, 12:30 am - Srijata BWU: @⁨Sanchita BWU⁩ @⁨Aman⁩ payel ma'am er message gulo ekta summary kore amake bol ki korte hobe
+15/04/26, 12:31 am - Sanchita BWU: <Media omitted>
+15/04/26, 12:32 am - Nilay: Nilay Dawn (028).......baki dekhe ne
+15/04/26, 12:32 am - Sanchita BWU: 🫩
+15/04/26, 12:34 am - Srijata BWU: <Media omitted>
+15/04/26, 12:34 am - Srijata BWU: 017
+15/04/26, 12:35 am - Sanchita BWU: 🥴🥴049
+15/04/26, 12:35 am - Srijata BWU: EHHH EI EMOGI KOBE ELO?
+15/04/26, 12:35 am - Srijata BWU: 🫪
+15/04/26, 12:36 am - Srijata BWU: 🫪🫪
+15/04/26, 12:36 am - Srijata BWU: 🫪
+15/04/26, 12:36 am - Srijata BWU: Heheh
+15/04/26, 12:37 am - SUDIP: subho nababarsha
+15/04/26, 12:37 am - Srijata BWU: Thak ami bhalo manush....
+15/04/26, 12:38 am - Srijata BWU: Kaal sokaal e er reply debo
+15/04/26, 1:03 pm - Srijata BWU: শুভ নববর্ষ 🩷
+15/04/26, 1:50 pm - Sanchita BWU: <Media omitted>
+16/04/26, 7:22 pm - Nilay: Lazy learner
+When overfitting will occur
+Evaluation metrics of classification and regression
+Which method is used in decision tree
+How SVM tries to classify / how SVM works (function)
+Why KNN classification is sensitive to distance matrix
+Kernel tricks in SVM
+Characteristics of KNN neighbours
+Distance between two points
+Difference between K-means clustering and partition around medoid
+Which type of approach is used in agglomerative clustering
+Outliers detection
+Medoid and centroid difference
+Limitations of K-means clustering
+PCA algorithm
+Web structure mining
+Text mining
+What is weblog data
+Difference between web content, structure and usage mining
+Text mining preprocessing steps
+Naive Bayes classifier
+Agglomerative clustering
+17/04/26, 11:20 am - SUDIP: This message was deleted
+19/04/26, 12:05 pm - Srijata BWU: Kaal PBL joma dite hobe ? Hard Copy?
+19/04/26, 12:06 pm - Srijata BWU: Ar project submission ta ki bhabe korbo ektu bol
+19/04/26, 12:06 pm - Srijata BWU: Kore dichhi
+19/04/26, 12:12 pm - Srijata BWU: Bol na lo @⁨all⁩
+19/04/26, 12:14 pm - SUDIP: @⁨Sanchita BWU⁩ jne  mne hoy
+19/04/26, 1:37 pm - Srijata BWU: @⁨Sanchita BWU⁩ send kor na link ta
+19/04/26, 1:37 pm - Sanchita BWU: https://forms.gle/RBehmtwaJrgsWKcW7
+19/04/26, 1:37 pm - Sanchita BWU: All details  with your contact number detail should be uploaded in this link...with zip file format
+19/04/26, 2:37 pm - Srijata BWU: <Media omitted>
+19/04/26, 2:37 pm - Srijata BWU: check fast
+19/04/26, 3:05 pm - Srijata BWU: @⁨Nilay⁩ bolli na kichhu
+19/04/26, 3:06 pm - Srijata BWU: <Media omitted>
+19/04/26, 3:08 pm - Nilay: You deleted this message
+19/04/26, 3:08 pm - Srijata BWU: @⁨all⁩ email id de
+19/04/26, 3:09 pm - Nilay: nilaydawn@gmail.com
+19/04/26, 3:10 pm - Srijata BWU: Eta diye dili kichhukhon e
+19/04/26, 3:10 pm - Srijata BWU: But eta check kore bolte parli na chhata
+19/04/26, 3:11 pm - Nilay: Are ekta word o mathay dhukche na.....ghumano hoyni, ghum pachhe.....sondhyay dekhchi
+19/04/26, 3:11 pm - Srijata BWU: Okay okay
+19/04/26, 3:12 pm - Nilay: @⁨Sanchita BWU⁩ @⁨Aman⁩ @⁨SUDIP⁩  *Are check kor na tora sob*
+19/04/26, 3:12 pm - Aman: amanprasad048@gmail.com
+19/04/26, 3:13 pm - Srijata BWU: Kaun aya dekhoo
+19/04/26, 3:15 pm - Aman: Thik h
+19/04/26, 3:15 pm - Srijata BWU: Okay okay naa?
+19/04/26, 3:15 pm - Srijata BWU: @⁨SUDIP⁩ Email BHAIIII
+19/04/26, 3:16 pm - Aman: Sahi h
+19/04/26, 3:24 pm - Srijata BWU: Check
+STUDENT DETAIL
+1.	Aman Prasad 
+Student Code- BWU/BTS/23/007
+Email- amanprasad048@gmail.com
+Phone no- 6206706548
+2.	Srijata Moitra
+Student Code- BWU/BTS/23/017
+Email- srijata.maitra05@gmail.com
+Phone no- 6290534749
+3.	Nilay Dawn
+Student Code- BWU/BTS/23/028
+Email- nilaydawn@gmail.com
+Phone no- 7679046213
+4.	Sanchita Kandar
+Student Code- BWU/BTS/23/049
+Email- sanchitakandar249@gmail.com
+Phone no- 9339483883
+5.	Sudip Dolui
+Student Code- BWU/BTS/23/054
+Email- 
+Phone no- 7718136014
+19/04/26, 3:25 pm - Srijata BWU: SUDIP
+19/04/26, 3:26 pm - Srijata BWU: EMAIL TA DE BE
+19/04/26, 3:32 pm - Aman: Ppt wala form submit kr diye wo fir se mat krna
+19/04/26, 3:32 pm - Srijata BWU: ABEE????????
+19/04/26, 3:32 pm - Srijata BWU: SADHE GAAL DEI TOKE AMI?
+19/04/26, 3:32 pm - Srijata BWU: Eta baniyechhili
+19/04/26, 3:32 pm - Srijata BWU: ??????
+19/04/26, 3:32 pm - Srijata BWU: ????????????????
+19/04/26, 3:33 pm - Aman: Ppt wala me email to nahi chaiye tha
+19/04/26, 3:33 pm - Aman: Shirf student code
+19/04/26, 3:33 pm - Srijata BWU: <Media omitted>
+19/04/26, 3:33 pm - Aman: Haa bs ye form submit krna h
+19/04/26, 3:34 pm - Aman: Or ek tha wo hum kr diye the
+19/04/26, 3:34 pm - Aman: 2 link tha..... Sama aayaa??
+19/04/26, 3:34 pm - Aman: Samaj*
+19/04/26, 3:34 pm - Srijata BWU: Ouh
+19/04/26, 3:34 pm - Srijata BWU: Okay...
+19/04/26, 3:37 pm - Srijata BWU: @⁨SUDIP⁩ tor girlfriend toke 2 ghonta por por reply dik ashirbaad korlam
+19/04/26, 3:38 pm - Srijata BWU: Ekhono email id dite parlo na chhagol ta
+19/04/26, 3:39 pm - Aman: Call nahi uttha raha
+19/04/26, 3:39 pm - Srijata BWU: Changed- I hope tor girlfriend toke 4 gonta baad e baad 3 reply dey
+19/04/26, 4:21 pm - SUDIP: doluisudip2004@gmail.com
+19/04/26, 4:22 pm - SUDIP: Vai ghuma6ilam ...
+19/04/26, 7:32 pm - Srijata BWU: <Media omitted>
+19/04/26, 7:36 pm - Srijata BWU: <Media omitted>
+19/04/26, 7:37 pm - SUDIP: Amar email er text-decoration ki none kore6is 😶🙃
+19/04/26, 7:37 pm - Srijata BWU: Ami kichhu e korini
+19/04/26, 7:37 pm - Srijata BWU: Microsoft Word Sudipphobic
+19/04/26, 7:37 pm - SUDIP: Aree mni bolti6i
+19/04/26, 7:40 pm - Srijata BWU: <Media omitted>
+19/04/26, 7:41 pm - Srijata BWU: <Media omitted>
+19/04/26, 7:41 pm - Srijata BWU: Le
+19/04/26, 8:22 pm - Srijata BWU: <Media omitted>
+19/04/26, 8:22 pm - Srijata BWU: Final version
+19/04/26, 8:22 pm - Srijata BWU: <Media omitted>
+19/04/26, 8:25 pm - Srijata BWU: <Media omitted>
+19/04/26, 8:29 pm - Srijata BWU: <Media omitted>
+22/04/26, 12:08 pm - Srijata BWU: Hello @⁨all⁩
+22/04/26, 12:09 pm - Srijata BWU: Data warehouse er PBL er ki hobe?
+22/04/26, 12:09 pm - Sanchita BWU: Sir ki format diyeche ?
+22/04/26, 12:09 pm - Srijata BWU: Ami jani e na sir ki diyechhe
+22/04/26, 12:09 pm - Sanchita BWU: Sir format deven bolechilen
+22/04/26, 12:09 pm - Srijata BWU: Wait khujte de
+22/04/26, 12:10 pm - Srijata BWU: <Media omitted>
+22/04/26, 12:10 pm - Srijata BWU: For the Data Mining Lab, all students must form groups for their PBL (Project-Based Learning).
+
+The topic for the PBL should be based on the work already done in the lab, such as the  Sales management project or the Cancer Data project.
+
+Everyone must form groups and start preparing their PBL report.
+22/04/26, 12:10 pm - Srijata BWU: All students are instructed to form groups for the Data Mining and Data Warehousing Lab (PCC-CSG692) PBL (Project-Based Learning). The topic must be based on the work already done in the lab, such as the Sales Management project or the Cancer Data project.
+
+The group size must be maximum 5 students (not more than 5).
+
+This is *mandatory for all students.* Everyone must form their groups and start preparing the PBL report.
+22/04/26, 12:23 pm - Aman: Lab exam me submit krna h kya?
+22/04/26, 1:15 pm - Srijata BWU: Haa
+22/04/26, 1:33 pm - Aman: Nilay likh lega
+22/04/26, 1:33 pm - Srijata BWU: Karega kaun?
+22/04/26, 1:33 pm - Srijata BWU: Banayega kaun?
+22/04/26, 1:34 pm - Aman: Wo to bana hua h
+22/04/26, 1:34 pm - Aman: Sanchita boli
+22/04/26, 1:34 pm - Aman: Jo last lab me hua tha
+22/04/26, 1:34 pm - Srijata BWU: Kaha? Kab? Kaun banaya?
+22/04/26, 1:35 pm - Srijata BWU: Last lab mein kya huya tha?
+22/04/26, 1:35 pm - Srijata BWU: Kab huya tha?
+22/04/26, 1:35 pm - Aman: Jo ppt topic tha uspe sir bole code krne ko
+22/04/26, 1:35 pm - Aman: Fir bole pbl banane ko
+22/04/26, 1:35 pm - Aman: Lekin shirf 2 topic pe
+22/04/26, 1:35 pm - Srijata BWU: ....
+22/04/26, 1:35 pm - Aman: Jo ppt me hi tha
+22/04/26, 1:35 pm - Aman: Ha grp me bole h
+22/04/26, 1:36 pm - Aman: Ppt wale topic se hi 2 topic liye h sir
+22/04/26, 1:36 pm - Srijata BWU: Haa to mera to iss mein se ek bhi nahi tha
+22/04/26, 1:36 pm - Aman: Sanchita ke pass h code shayad
+22/04/26, 1:36 pm - Srijata BWU: Okay
+22/04/26, 1:37 pm - Aman: POLL:
+Pbl kon bana raha h?
+OPTION: Nilay (4 votes)
+OPTION: Sudip (0 votes)
+OPTION: Srijata (0 votes)
+OPTION: Snachita (0 votes)
+OPTION: Aman (0 votes)
+
+22/04/26, 1:38 pm - Sanchita BWU: Meri name ka spelling badiya hai
+22/04/26, 1:38 pm - Aman: 😂
+22/04/26, 1:38 pm - Srijata BWU: Snachted
+22/04/26, 1:39 pm - Nilay: Veto 🚫
+22/04/26, 1:39 pm - Aman: To faisla ho gaya
+22/04/26, 1:39 pm - Sanchita BWU: 🥴
+22/04/26, 1:39 pm - Aman: @⁨Nilay⁩ the Leader
+22/04/26, 1:40 pm - Nilay: Veto veto veto
+22/04/26, 1:41 pm - Aman: Wo sab kuch nahi
+22/04/26, 1:42 pm - Aman: Tumhare hone wale bacche ke liye tumhe ye krna hi hoga💪
+18/05/26, 12:36 pm - Srijata BWU: @⁨all⁩ PBL
+18/05/26, 12:36 pm - Srijata BWU: Data warehouse ka
+18/05/26, 12:44 pm - Aman: @⁨Nilay⁩
+18/05/26, 1:15 pm - Nilay: <Media omitted>
+18/05/26, 1:16 pm - Aman: Jese mesage kiya wese kro
+18/05/26, 1:16 pm - Srijata BWU: Word e likhte net lage na
+18/05/26, 1:16 pm - Srijata BWU: Code kore dichhi
+18/05/26, 1:16 pm - Srijata BWU: Report tui likhbi
+18/05/26, 1:17 pm - Nilay: *With No Internet, Comes No Responsibility*
+18/05/26, 1:17 pm - Srijata BWU: Kon mohapurush/mohila bolechhe ei kotha ta?
+18/05/26, 1:17 pm - Srijata BWU: Mamata Banerjee?
+18/05/26, 1:18 pm - Nilay: A wise man....in the mirror.... once told me
+18/05/26, 1:25 pm - Srijata BWU: Abhishek Banerjee then
+18/05/26, 1:25 pm - Srijata BWU: Same byapar
+18/05/26, 1:25 pm - Srijata BWU: @⁨Aman⁩ @⁨Sanchita BWU⁩ korte ki hobe jana
+18/05/26, 1:27 pm - Aman: Heart disease or cancer prediction h shayad..... @⁨Sanchita BWU⁩ confirm kr
+18/05/26, 1:33 pm - Srijata BWU: Usme karna kya hein?
+18/05/26, 1:33 pm - Srijata BWU: Web application banau? Visualization? OLAP ka operations?
+18/05/26, 1:35 pm - Aman: Shayad shirf model train krna h
+18/05/26, 1:35 pm - Aman: Sir thik se kuch bole hi nahi h
+18/05/26, 2:02 pm - Srijata BWU: 😑
+18/05/26, 2:02 pm - Srijata BWU: Kya hi bole aur
+18/05/26, 2:35 pm - Aman: Sunne me aaya h... Sara model train karna h or OLAP operation krna h
+18/05/26, 2:37 pm - Aman: Agr koi source h jo bana liya h to bs usse v maang sakte h... Bohot log wahi kr rahe h.... Jese last time Networks me hua tha
+18/05/26, 2:43 pm - Srijata BWU: Okay
+18/05/26, 2:43 pm - Srijata BWU: Kis se maango gec
+18/05/26, 2:43 pm - Srijata BWU: *
+18/05/26, 2:43 pm - Srijata BWU: *?
+18/05/26, 2:45 pm - Aman: Good question
+18/05/26, 2:52 pm - Sanchita BWU: <Media omitted>
+18/05/26, 2:53 pm - Sanchita BWU: Eta format
+18/05/26, 2:53 pm - Sanchita BWU: Jeta already hoye ache bash PBEL form kore de
+18/05/26, 2:53 pm - Srijata BWU: @⁨Nilay⁩
+18/05/26, 2:53 pm - Sanchita BWU: Nhi aise kuch nhi hai
+18/05/26, 2:53 pm - Srijata BWU: Ki ki hoyechhe ota e bhule gechhi to....
+18/05/26, 2:54 pm - Sanchita BWU: <Media omitted>
+18/05/26, 2:55 pm - Srijata BWU: Okay dekhchhi
+19/05/26, 11:32 am - Aman: thora check krna chalega ye?
+19/05/26, 11:32 am - Aman: <Media omitted>
+19/05/26, 11:32 am - Aman: <Media omitted>
+19/05/26, 11:32 am - Srijata BWU: Kaha se chura ke laye?
+19/05/26, 11:32 am - Aman: Phele batao sahi h?
+19/05/26, 11:32 am - Aman: Chal jayega na
+19/05/26, 11:33 am - Srijata BWU: Perfect
+19/05/26, 11:33 am - Aman: To fir @⁨Nilay⁩ starting me naam likh dena or printout krwa lena
+19/05/26, 11:33 am - Aman: AI h AI 😂
+19/05/26, 11:35 am - Sanchita BWU: Vai vai vai ye kya hai
+19/05/26, 11:35 am - Sanchita BWU: Kaha Mila tujhe
+19/05/26, 11:35 am - Aman: .
+19/05/26, 11:36 am - Sanchita BWU: Wow 🤯
+20/05/26, 3:26 pm - Srijata BWU: Data visualization ka PBL hein kya?
+20/05/26, 6:28 pm - Aman: Shayad nahi
+20/05/26, 6:29 pm - Srijata BWU: Okay
+21/05/26, 1:19 pm - Nilay: Eta naam-tam likhe, format check kore final keu pathiye de , sondhyar dik kore, ami ber kore nichhi 🙏
+21/05/26, 1:57 pm - Srijata BWU: Chhata 😑
+21/05/26, 6:01 pm - Aman: <Media omitted>
+21/05/26, 6:02 pm - Aman: thik h na?
+21/05/26, 6:03 pm - SUDIP: Thik hee
+21/05/26, 6:10 pm - Srijata BWU: Yup
+22/05/26, 10:47 am - Srijata BWU: Ke ektu age ashbi?
+22/05/26, 10:47 am - Sanchita BWU: Kno
+22/05/26, 10:47 am - Srijata BWU: This message was deleted
+22/05/26, 10:47 am - Srijata BWU: This message was deleted
+22/05/26, 10:47 am - Sanchita BWU: Time ?
+22/05/26, 10:47 am - Srijata BWU: This message was deleted
+22/05/26, 10:48 am - Sanchita BWU: Ami hoito pouche jbo
+22/05/26, 10:48 am - Srijata BWU: This message was deleted
+22/05/26, 8:02 pm - Srijata BWU: This message was deleted
+22/05/26, 8:03 pm - Aman: Aaj wala?
+22/05/26, 8:03 pm - Srijata BWU: This message was deleted
+22/05/26, 8:03 pm - Srijata BWU: This message was deleted
+22/05/26, 8:03 pm - Srijata BWU: This message was deleted
+22/05/26, 8:03 pm - Aman: Jo presentation hua tham
+22/05/26, 8:03 pm - Aman: Wo dena h?
+22/05/26, 8:04 pm - Srijata BWU: This message was deleted
+22/05/26, 8:04 pm - Srijata BWU: This message was deleted
+22/05/26, 8:04 pm - Aman: Avhi to bahar h de nahi sakte
+22/05/26, 8:04 pm - Aman: Haa
+22/05/26, 8:04 pm - Aman: Wahi wala to sign kiye aaj
+22/05/26, 8:04 pm - Srijata BWU: This message was deleted
+22/05/26, 8:04 pm - Srijata BWU: This message was deleted
+22/05/26, 8:05 pm - Srijata BWU: This message was deleted
+22/05/26, 8:05 pm - Srijata BWU: This message was deleted
+22/05/26, 8:06 pm - Srijata BWU: This message was deleted
+22/05/26, 8:06 pm - Aman: Nahi dena h
+22/05/26, 8:07 pm - Srijata BWU: This message was deleted
+23/05/26, 10:06 pm - Aman: Ye log pagal wagal ho gaye h kya
+23/05/26, 10:06 pm - Aman: Har baat pe hard copy
+23/05/26, 10:07 pm - Srijata BWU: This message was deleted
+23/05/26, 10:07 pm - Aman: Ab maan phele boli hi nahi kisi ko nahi pata tha
+23/05/26, 10:07 pm - Aman: Kese bol dete hum🙂
+23/05/26, 10:14 pm - Srijata BWU: This message was deleted
+23/05/26, 10:18 pm - Aman: 🙂 krte h
+24/05/26, 12:41 pm - Aman: Isko resend krna
+24/05/26, 12:41 pm - Aman: Word wala
+24/05/26, 12:42 pm - Sanchita BWU: <Media omitted>
+24/05/26, 12:42 pm - Srijata BWU: This message was deleted
+24/05/26, 12:42 pm - Srijata BWU: This message was deleted
+24/05/26, 12:43 pm - Srijata BWU: This message was deleted
+24/05/26, 12:51 pm - Aman: Main teacher kon hm
+24/05/26, 12:51 pm - Aman: Paypal?
+24/05/26, 12:53 pm - Sanchita BWU: 🤔
+24/05/26, 12:53 pm - Aman: Payel
+24/05/26, 12:53 pm - Aman: ?
+24/05/26, 12:54 pm - Sanchita BWU: <Media omitted>
+24/05/26, 12:54 pm - Sanchita BWU: Dipanjan
+24/05/26, 12:54 pm - Sanchita BWU: Sir
+24/05/26, 12:54 pm - Aman: Full name bol
+24/05/26, 12:54 pm - Aman: Image download nahi krna
+24/05/26, 12:54 pm - Sanchita BWU: Mr. Dipanjan Guha
+24/05/26, 1:01 pm - Aman: <Media omitted>
+24/05/26, 1:01 pm - Aman: jaldi check kro
+24/05/26, 1:02 pm - Srijata BWU: This message was deleted
+24/05/26, 1:06 pm - Aman: DONE
+24/05/26, 1:06 pm - Srijata BWU: This message was deleted
+24/05/26, 1:06 pm - Aman: <Media omitted>
+24/05/26, 1:06 pm - Srijata BWU: This message was deleted
+24/05/26, 1:06 pm - Aman: nah krdete h hum avhi
+24/05/26, 1:50 pm - Aman: Minning me student code diya tha koi?
+24/05/26, 1:50 pm - Nilay: MR. DIPANJAN GUHA *CHOWDHURY*
+24/05/26, 1:50 pm - Aman: Usme to nahi tha routeen me
+24/05/26, 1:50 pm - Aman: Or print ho gaya h ab
+24/05/26, 1:51 pm - Srijata BWU: This message was deleted
+24/05/26, 1:51 pm - Srijata BWU: This message was deleted
+24/05/26, 1:56 pm - Sanchita BWU: Last e signing mai bracket ka andar st code short likha tha
+24/05/26, 2:01 pm - Srijata BWU: This message was deleted
+24/05/26, 2:02 pm - Sanchita BWU: Chilo sobar
+24/05/26, 2:02 pm - Aman: Roll number?
+24/05/26, 2:02 pm - Sanchita BWU: St. Code
+24/05/26, 2:03 pm - Aman: Addhar number?
+24/05/26, 2:03 pm - Sanchita BWU: Tera no
+24/05/26, 2:03 pm - Aman: Ration card no.
+24/05/26, 2:07 pm - Srijata BWU: This message was deleted
+24/05/26, 2:08 pm - Aman: Pata nahi batate h.. .or kisi ko pata h to batao
+24/05/26, 2:13 pm - Sanchita BWU: Nhi
+24/05/26, 2:13 pm - Sanchita BWU: Boleni kichu
+24/05/26, 2:27 pm - Srijata BWU: This message was deleted
+24/05/26, 8:04 pm - Srijata BWU: This message was deleted
+28/05/26, 12:01 pm - Sanchita BWU: Data visualization er PBL banate hbe
+28/05/26, 12:01 pm - Srijata BWU: CHHAGLAAAAAAAAA
+28/05/26, 12:01 pm - Sanchita BWU: Ami ei janlam
+28/05/26, 12:02 pm - Sanchita BWU: Tao individually
+28/05/26, 12:02 pm - Srijata BWU: Individually?????????
+28/05/26, 12:02 pm - Srijata BWU: 🥲
+28/05/26, 12:02 pm - Sanchita BWU: Um
+28/05/26, 12:03 pm - Sanchita BWU: Ppt topic er opor
+28/05/26, 12:03 pm - Srijata BWU: 🙂
+28/05/26, 12:17 pm - SUDIP: <Media omitted>
+28/05/26, 12:17 pm - Sanchita BWU: <Media omitted>
+28/05/26, 12:20 pm - Aman: <Media omitted>
+28/05/26, 12:20 pm - Sanchita BWU: Sorry brothers
+28/05/26, 12:20 pm - Sanchita BWU: <Media omitted>
+28/05/26, 12:35 pm - Srijata BWU: <Media omitted>
+28/05/26, 12:36 pm - Sanchita BWU: <Media omitted>
+30/05/26, 3:32 pm - Aman: @⁨all⁩ koi apply kr raha h 5g labs me?
+30/05/26, 3:32 pm - Srijata BWU: Paisa kitna milega?
+30/05/26, 3:32 pm - Sanchita BWU: Nhi
+30/05/26, 3:32 pm - Aman: Kuch likha nahi h
+30/05/26, 3:33 pm - Aman: Shayad nahi milega
+30/05/26, 3:33 pm - Srijata BWU: Puchhke batao
+30/05/26, 3:33 pm - Sanchita BWU: Free
+30/05/26, 3:33 pm - Srijata BWU: Agar milega to karungi
+30/05/26, 3:33 pm - Sanchita BWU: Stipend na
+30/05/26, 3:33 pm - Srijata BWU: Dherr b***!
+30/05/26, 3:33 pm - Srijata BWU: Korbo na
+30/05/26, 3:33 pm - Sanchita BWU: <Media omitted>
+30/05/26, 3:33 pm - Sanchita BWU: Koro tumi
+30/05/26, 3:33 pm - Srijata BWU: Aman korbe
+30/05/26, 3:33 pm - Sanchita BWU: Boroloks
+30/05/26, 3:33 pm - Aman: Government ka h lekin
+30/05/26, 3:34 pm - Srijata BWU: Amar maa amar pechhone porechhe eta niye
+30/05/26, 3:34 pm - Aman: <Media omitted>
+30/05/26, 3:34 pm - Srijata BWU: Govt. Shunle amar trauma ashchhe
+30/05/26, 3:34 pm - Srijata BWU: Abeee amake banking e dhokate chai ki boomer generation er mohila re baba
+30/05/26, 3:35 pm - Aman: Accha h daka dalne me aasani hoga
+30/05/26, 3:35 pm - Aman: Srijata ko hi fasa denge
+30/05/26, 3:35 pm - Srijata BWU: Bkl
+30/05/26, 3:35 pm - Aman: Or form aaya tha 4 bjr tk fill krne ka koi kiya
+30/05/26, 3:35 pm - Aman: Imp h kya?
+30/05/26, 3:36 pm - Srijata BWU: Internship kiye ho pichhle sem mein?
+30/05/26, 3:36 pm - Srijata BWU: Nahi na?
+30/05/26, 3:36 pm - Aman: Nah
+30/05/26, 3:36 pm - Srijata BWU: Chup chap baitho
+30/05/26, 3:36 pm - Srijata BWU: Fever meme khelo
+30/05/26, 3:39 pm - Sanchita BWU: Ek news hai
+30/05/26, 3:39 pm - Sanchita BWU: Pata hai kisiko ?
+30/05/26, 3:40 pm - Srijata BWU: Kya bol
+30/05/26, 3:40 pm - Sanchita BWU: Piyali mam hum logo ka next year program coordinator hai
+30/05/26, 3:40 pm - Sanchita BWU: 🥴
+30/05/26, 3:40 pm - Srijata BWU: Chud gaye
+30/05/26, 3:40 pm - Sanchita BWU: 🤣🤣🤣
+01/06/26, 2:26 pm - Srijata BWU: https://docs.google.com/forms/d/e/1FAIpQLSeyhvRxxTNDGZ-Hx1-8_n7jlT3AowsHCK_pHDuttDd8lJT_3g/viewform?usp=publish-editor
+01/06/26, 2:26 pm - Srijata BWU: Konsa project? B2B SaaS level FAAANG apppointed project?
+01/06/26, 2:27 pm - Sanchita BWU: Ja kushi
+01/06/26, 2:52 pm - Aman: ye chalega?
+01/06/26, 2:58 pm - Sanchita BWU: Marder 😳
+02/06/26, 8:42 pm - Srijata BWU: Attention
+02/06/26, 8:43 pm - Srijata BWU: Your homie(me) officially has joined gym
+02/06/26, 8:43 pm - Sanchita BWU: Congratulations 🎉
+02/06/26, 8:43 pm - Sanchita BWU: Ei anonde ami biriyani banachhi
+02/06/26, 8:43 pm - Sanchita BWU: Chole aii
+02/06/26, 8:43 pm - SUDIP: Party chai 🎉🎉
+02/06/26, 8:44 pm - Srijata BWU: Chhagla ajke e bollo amay biriyani chharte and tui ekhon biriyani r kotha bolchhish? 🙂
+02/06/26, 8:44 pm - SUDIP: <Media omitted>
+02/06/26, 8:44 pm - Srijata BWU: Hobe gurudeb 🙏🏻
+02/06/26, 8:44 pm - Sanchita BWU: 😂🤣🤣🤣
+02/06/26, 8:44 pm - Sanchita BWU: Last day
+02/06/26, 8:44 pm - Sanchita BWU: Wp te pathiye dichhi kheye nis
+02/06/26, 8:45 pm - Srijata BWU: De de
+02/06/26, 8:45 pm - Sanchita BWU: Cholche processing wait kor
+02/06/26, 8:45 pm - Srijata BWU: Hu hu
+02/06/26, 9:43 pm - Sanchita BWU: 
+02/06/26, 9:43 pm - Sanchita BWU: <Media omitted>
+02/06/26, 9:43 pm - Sanchita BWU: <Media omitted>
+02/06/26, 9:43 pm - Sanchita BWU: <Media omitted>
+02/06/26, 9:43 pm - Sanchita BWU: <Media omitted>
+02/06/26, 9:43 pm - Sanchita BWU: Ne kheye ne @⁨Srijata BWU⁩
+02/06/26, 9:43 pm - Srijata BWU: 🥹🥹🥹🥹🥹
+02/06/26, 9:43 pm - Srijata BWU: Khaboooo
+02/06/26, 9:45 pm - Sanchita BWU: This message was deleted
+02/06/26, 9:45 pm - Sanchita BWU: Khao
+02/06/26, 9:45 pm - Sanchita BWU: Chinta neii beshi oil dewa neii
+02/06/26, 9:53 pm - Srijata BWU: Okiee
+02/06/26, 9:53 pm - Srijata BWU: Bhalo hoechhe khete khoob
+02/06/26, 10:11 pm - Sanchita BWU: Thanks
+02/06/26, 10:11 pm - Sanchita BWU: <Media omitted>
+02/06/26, 10:11 pm - Sanchita BWU: <Media omitted>
+02/06/26, 10:22 pm - Srijata BWU: Alu achhe?
+02/06/26, 10:22 pm - Sanchita BWU: Hm
+02/06/26, 10:22 pm - Srijata BWU: De ekta
+02/06/26, 10:22 pm - Srijata BWU: Khai
+02/06/26, 10:23 pm - Sanchita BWU: Niye ja
+03/06/26, 6:20 pm - Srijata BWU: Bro log
+03/06/26, 6:20 pm - Sanchita BWU: Yapp
+03/06/26, 6:20 pm - Srijata BWU: @⁨SUDIP⁩ 1st din kore vomiting feel hoa ta ki normal?
+03/06/26, 6:20 pm - Srijata BWU: Bruh.... 🙂
+03/06/26, 6:20 pm - Srijata BWU: Kissu nei ar amar moddhye
+03/06/26, 6:21 pm - SUDIP: Haa normal but jas kokhon gym?
+03/06/26, 6:21 pm - Srijata BWU: 4:30
+03/06/26, 6:21 pm - SUDIP: Weight loss korbi toh?
+03/06/26, 6:21 pm - Aman: Tumko lagta h ye subha ko jayegi?? 😂
+03/06/26, 6:21 pm - Srijata BWU: Fat loss
+03/06/26, 6:22 pm - SUDIP: Morning e gele valo hoto
+03/06/26, 6:22 pm - Srijata BWU: 6 baje driving school jati hun mein
+03/06/26, 6:22 pm - Srijata BWU: 🙂chhere de bhai kede bachi age
+03/06/26, 6:22 pm - SUDIP: Ki koralo aj gym e
+03/06/26, 6:22 pm - Sanchita BWU: Warmup 🤣
+03/06/26, 6:23 pm - Srijata BWU: Normal workout and upper body training
+03/06/26, 6:23 pm - Aman: Biryani
+03/06/26, 6:23 pm - Sanchita BWU: Ami debo party
+03/06/26, 6:23 pm - SUDIP: Ohh
+03/06/26, 6:23 pm - Sanchita BWU: Keo pattai dilo na amr kothar
+03/06/26, 6:23 pm - Sanchita BWU: Vag asbona group e ami r
+03/06/26, 6:23 pm - Srijata BWU: Tui de party
+03/06/26, 6:23 pm - SUDIP: Ayein 🫥
+03/06/26, 6:24 pm - SUDIP: Location
+03/06/26, 6:24 pm - Aman: Wo to feb se maang rahe h... Mil hi nahi raha.... Umeed chor chuke h
+03/06/26, 6:24 pm - SUDIP: Party 🥳
+03/06/26, 6:24 pm - Srijata BWU: Aman er bari
+03/06/26, 6:24 pm - SUDIP: Bihar 💣
+03/06/26, 6:24 pm - Aman: Jharkhand bhai🥲
+03/06/26, 6:25 pm - SUDIP: Oh sorry vai 💀
+03/06/26, 6:25 pm - Srijata BWU: Same same 19/20 ka pharak
+03/06/26, 6:25 pm - Aman: Hn 9/11 ka
+03/06/26, 6:25 pm - SUDIP: <Media omitted>
+03/06/26, 6:26 pm - Aman: @⁨Sanchita BWU⁩
+03/06/26, 6:27 pm - Srijata BWU: Nahi sunegi
+03/06/26, 6:27 pm - Srijata BWU: Uss din ghar ayi
+03/06/26, 6:28 pm - Srijata BWU: Uss din bhi boli
+03/06/26, 6:28 pm - Srijata BWU: "Dungi"
+03/06/26, 6:28 pm - Srijata BWU: Kahke chali gayi apne saiyaa ji ke saath khane
+03/06/26, 6:28 pm - Aman: Parleg hi khila do yaar pani ke sath
+03/06/26, 6:29 pm - Srijata BWU: Ye log sab apne apne "saiyaan" ji ko khilwaega
+03/06/26, 6:29 pm - Srijata BWU: Hum log garib hein humko khilwaega nahi
+03/06/26, 6:29 pm - Srijata BWU: Paani bhi chalega (diet coke)
+05/06/26, 9:39 am - Aman: Ye sanchita to mr. India ban gai
+05/06/26, 9:41 am - Sanchita BWU: Kyu vaii
+05/06/26, 9:41 am - Sanchita BWU: Humne kya kiya
+05/06/26, 9:41 am - Aman: Nah sab itna kuch bola seen nahi ki
+05/06/26, 9:45 am - Sanchita BWU: <Media omitted>
+05/06/26, 9:45 am - Sanchita BWU: Sab ghar chale jao yrr
+05/06/26, 9:45 am - Sanchita BWU: Fir hum sabke Ghar jake khilayenge
+05/06/26, 9:45 am - Sanchita BWU: Or rahi baat Srijata ki .. .....ruk tu yrr
+05/06/26, 9:45 am - Sanchita BWU: Chal meri Ghar tujhe itna ghumaungi , khilaungi
+05/06/26, 9:46 am - Sanchita BWU: Phir pagal ho jayegi oh
+05/06/26, 9:46 am - Aman: Abhi pagal nahi kya?
+05/06/26, 9:46 am - Sanchita BWU: Haan ...or pura ho jayegi
+05/06/26, 9:47 am - Aman: @⁨Nilay⁩ iska to alag hi h
+05/06/26, 9:47 am - Sanchita BWU: Jharkhand mai ghumne ka best jaga bol @⁨Aman⁩
+05/06/26, 9:47 am - Sanchita BWU: September mai
+05/06/26, 9:47 am - Aman: Wo to humko v nahi pata 😂
+05/06/26, 9:47 am - Sanchita BWU: Kud ja pani mai
+05/06/26, 9:47 am - Aman: Ranchi mental hospital
+05/06/26, 9:48 am - Aman: Humko to aisa lgta h jharkhand se jayada bangal ghume h
+05/06/26, 9:49 am - SUDIP: Aman ka ghar
+05/06/26, 9:49 am - Sanchita BWU: <Media omitted>
+05/06/26, 9:50 am - Sanchita BWU: Bulaya nhi
+05/06/26, 9:50 am - Sanchita BWU: Nhi jaungi
+05/06/26, 9:50 am - Aman: Traij pakdo aa jao
+05/06/26, 9:50 am - Aman: 1 bje shaktipunj
+05/06/26, 9:51 am - SUDIP: <Media omitted>
+05/06/26, 9:51 am - Sanchita BWU: Pura khandan leke aa rahi hu phir
+05/06/26, 9:52 am - Aman: Wese chandrapura pura tut raha h sab ka ghar
+05/06/26, 9:52 am - Aman: Aao
+05/06/26, 9:53 am - Sanchita BWU: Okay
+05/06/26, 6:27 pm - SUDIP: <Media omitted>
+05/06/26, 6:27 pm - SUDIP: @⁨Sanchita BWU⁩ ki hbe re ?
+05/06/26, 6:28 pm - Sanchita BWU: Interview training
+05/06/26, 6:28 pm - SUDIP: Question korbe?
+05/06/26, 6:28 pm - Sanchita BWU: Hm
+05/06/26, 6:28 pm - Aman: Nah answer denge
+05/06/26, 6:28 pm - Aman: Ki hum berojgar kyu h
+05/06/26, 6:28 pm - SUDIP: <Media omitted>
+05/06/26, 8:01 pm - Sanchita BWU: https://www.instagram.com/p/DZF0W93jNzV/?img_index=5&igsh=MXA5NDBhZG04cjQzbg==
+05/06/26, 8:01 pm - Sanchita BWU: @⁨Aman⁩
+05/06/26, 8:03 pm - Aman: Polio wala nahi h?
+05/06/26, 8:04 pm - Sanchita BWU: Hota toh vej deti
+05/06/26, 10:09 pm - Sanchita BWU: Etar document gulo Kobe submit korte hbe keo janis ?
+05/06/26, 10:10 pm - Srijata BWU: Diyechhilam to
+05/06/26, 10:10 pm - Srijata BWU: Google forms e?
+05/06/26, 10:10 pm - Sanchita BWU: Hm
+05/06/26, 10:10 pm - Sanchita BWU: But eta te ki abar diye hbe
+05/06/26, 10:10 pm - Sanchita BWU: Dite
+05/06/26, 10:10 pm - Sanchita BWU: Dear Students of BCSE 2023,
+
+This is to inform you that the CSE Department Student Profiling Process for the BCSE 2023 batch will commence from 8th June 2026 in online mode as per the schedule attached.
+
+The student profiling process is a crucial academic and professional evaluation activity undertaken by the department. The information collected and verified during this process will play a vital role in the upcoming placement activities, including student skill mapping, eligibility assessment, company-specific nominations, internship opportunities, and placement preparation initiatives. Therefore, all students are advised to participate sincerely and complete the process within the stipulated timeline.
+
+The profiling process will include the following stages:
+
+1. Verification of Technical Skills
+Students will undergo a technical interview conducted by faculty members of the Department of Computer Science & Engineering.
+The interview will assess technical knowledge, programming skills, project experience, and domain expertise.
+2. Verification of Academic Records, Internship Certificates, and Research Contributions
+The department will verify the following documents:
+
+Class 10 Certificate/Marksheet
+Class 12 Certificate/Marksheet
+Internship Certificates
+Research Publications
+Conference Papers
+Book Chapters
+Patents
+Project Reports and other relevant academic achievements
+Important Instructions
+All students must upload the required documents through the submission link provided in the attached schedule.
+Ensure that all uploaded documents are clear, complete, and authentic.
+Upload documents in PDF format.
+Strictly follow the file naming conventions mentioned below. Documents not following the prescribed format may not be considered during verification.
+File Naming Convention
+Academic Documents
+Class 10 Certificate: 10TH_BWU_BTS_23_YYY
+Class 12 Certificate: 12TH_BWU_BTS_23_YYY
+
+Internship Certificates
+First Internship Certificate: INTERNSHIP1_BWU_BTS_23_YYY
+Second Internship Certificate: INTERNSHIP2_BWU_BTS_23_YYY
+Third Internship Certificate: INTERNSHIP3_BWU_BTS_23_YYY
+and so on.
+
+Research Contributions
+First Research Contribution: RC1_BWU_BTS_23_YYY
+Second Research Contribution: RC2_BWU_BTS_23_YYY
+Third Research Contribution: RC3_BWU_BTS_23_YYY
+and so on.
+
+Note: Replace YYY with the last three digits of your Student Code.
+
+Mandatory Attendance
+Attendance for the Student Profiling Process is mandatory for all BCSE 2023 students. Non-participation in the technical interview and/or failure to submit the required documents may adversely affect the department's ability to accurately assess your profile for upcoming placement opportunities.
+
+Students are requested to carefully review the attached schedule and complete all required activities within the specified deadlines.
+
+Your cooperation will help the department create a comprehensive student profile that can be effectively utilized during campus recruitment drives and industry interactions.
+
+For any queries, please contact Placement Cell Department of Computer Science & Engineering.
+05/06/26, 10:10 pm - Sanchita BWU: Eta
+05/06/26, 10:11 pm - Sanchita BWU: Etar vetore google form abaro dewa ache
+05/06/26, 10:12 pm - Srijata BWU: Dherr
+05/06/26, 10:14 pm - Aman: Salo ko bolo ki dsa aata h to radix sort or pata nahi kya kya sort puchte h😑
+05/06/26, 10:14 pm - Sanchita BWU: Haan 🤣
+06/06/26, 9:30 am - Sanchita BWU: Keo bol na re
+06/06/26, 9:30 am - Sanchita BWU: Kober modhhe oi link e details submit korte hbe
+06/06/26, 9:33 am - Aman: Abhi krdo
+06/06/26, 9:34 am - Sanchita BWU: Ghar jaungi
+06/06/26, 9:34 am - Sanchita BWU: Ish liye puch rahi hu
+06/06/26, 9:34 am - Sanchita BWU: Aj agar last date nhi hai toh kal karungi
+06/06/26, 9:35 am - Aman: CR hum h ya tum?
+06/06/26, 9:36 am - Sanchita BWU: 🫩
+06/06/26, 9:36 am - Sanchita BWU: <Media omitted>
+06/06/26, 9:37 am - Aman: Hum to nahi kiye upload shayad aaj kr de agr mann kiya to
+06/06/26, 9:37 am - Sanchita BWU: Wow 😳
+06/06/26, 9:38 am - Sanchita BWU: <Media omitted>
+06/06/26, 9:38 am - Aman: Wese hum interview denge kese.... Ghar pe ek v formal shirt nahi laye😂
+06/06/26, 9:38 am - Sanchita BWU: Same bro
+06/06/26, 9:38 am - Sanchita BWU: Formal nhi carry kar sakti yrr
+06/06/26, 9:38 am - Aman: Are ek shirt hi to h
+06/06/26, 9:38 am - Sanchita BWU: 🫩
+06/06/26, 1:21 pm - SUDIP: Meet ki interview libe 🫥🫥
+06/06/26, 1:21 pm - Sanchita BWU: Hm
+06/06/26, 1:21 pm - SUDIP: <Media omitted>
+06/06/26, 1:22 pm - Sanchita BWU: Aktu neche dekhiye dibi
+06/06/26, 1:22 pm - Sanchita BWU: Muscles dekhbai
+06/06/26, 1:22 pm - Sanchita BWU: Dekhabi
+06/06/26, 1:22 pm - SUDIP: <Media omitted>
+06/06/26, 1:22 pm - Sanchita BWU: Pass interview
+06/06/26, 1:22 pm - SUDIP: Kadero suru hoi6e?
+06/06/26, 1:22 pm - SUDIP: Ki dhorbe ki6u jnis
+06/06/26, 1:22 pm - Sanchita BWU: Srijata first debe
+06/06/26, 1:22 pm - Sanchita BWU: R aman
+06/06/26, 1:22 pm - Sanchita BWU: Tarpor nilay r pushpa
+06/06/26, 1:23 pm - Sanchita BWU: Tarpor ami
+06/06/26, 1:23 pm - Sanchita BWU: Tarpor tuii
+06/06/26, 1:23 pm - SUDIP: Bole dis group e ki jigasa kor6ilo
+06/06/26, 1:23 pm - Sanchita BWU: @⁨Aman⁩ @⁨Srijata BWU⁩ guys
+06/06/26, 1:23 pm - SUDIP: <Media omitted>
+06/06/26, 1:24 pm - Sanchita BWU: <Media omitted>
+07/06/26, 1:37 pm - Srijata BWU: Keo submit korechhish?
+07/06/26, 1:37 pm - Srijata BWU: ?
+07/06/26, 1:40 pm - Sanchita BWU: Nah
+07/06/26, 1:40 pm - Srijata BWU: Korbi?
+07/06/26, 2:08 pm - Sanchita BWU: Hm
+07/06/26, 7:20 pm - Srijata BWU: No one will be allowed in mock sessions without formal attire and polished shoes. Your communication should be in English.
+07/06/26, 7:21 pm - Srijata BWU: Ami pagol naki hod sir pagol konta
+07/06/26, 7:21 pm - Srijata BWU: ?
+07/06/26, 7:21 pm - Sanchita BWU: Kno ki hoyeche
+07/06/26, 7:31 pm - SUDIP: Videocall e ki college er e sir mam thakbe
+07/06/26, 7:31 pm - Sanchita BWU: Hm
+07/06/26, 7:31 pm - Sanchita BWU: Shibananda sir , Piyali mam r keo akjon thakbe
+07/06/26, 7:32 pm - Sanchita BWU: Okhane sheet ta tei ache dekh
+07/06/26, 7:32 pm - SUDIP: Sir ta ki amader kono class nichilo sunchi jno nam ta
+07/06/26, 7:32 pm - Sanchita BWU: Guard e aseche
+07/06/26, 7:32 pm - Sanchita BWU: Exam
+07/06/26, 7:32 pm - SUDIP: Sob ready ja question dhorbe?
+07/06/26, 7:33 pm - Sanchita BWU: Dher
+07/06/26, 7:33 pm - Sanchita BWU: Ami kichhu porini
+07/06/26, 7:33 pm - SUDIP: Nah dile ki jhamela ache?
+07/06/26, 7:33 pm - Sanchita BWU: Jnina
+07/06/26, 7:33 pm - Sanchita BWU: Ami nijei confused
+07/06/26, 7:33 pm - Sanchita BWU: R faculty ka jiggas korte lyad lagche
+07/06/26, 7:34 pm - SUDIP: Sobai uthe pore lagche meeting er jonno
+07/06/26, 7:34 pm - Sanchita BWU: 🥴
+07/06/26, 7:34 pm - SUDIP: Form submit kor6u?
+07/06/26, 7:34 pm - Sanchita BWU: Oo meeting ja hbe dekha jabe darana
+07/06/26, 7:34 pm - Sanchita BWU: Nah
+07/06/26, 7:34 pm - Sanchita BWU: Lyad lagche amr
+07/06/26, 7:34 pm - SUDIP: Kijni 20 jon kore 2hours
+07/06/26, 7:35 pm - Sanchita BWU: Ami jokhon interview faculty gulo kandbe
+07/06/26, 7:35 pm - Sanchita BWU: Because network issue
+07/06/26, 7:35 pm - Sanchita BWU: Ami na toh sunte pabo r na toh amr kotha sunte pabe
+07/06/26, 7:35 pm - Sanchita BWU: Valo hobe
+07/06/26, 7:35 pm - Sanchita BWU: Hm seii
+07/06/26, 7:35 pm - SUDIP: Ami iccha kore net off kore on korbo jate kichu na dhore 😓😂
+07/06/26, 7:36 pm - SUDIP: Gorome abar formal kore buse thakte hbe
+07/06/26, 7:36 pm - Sanchita BWU: Ato talent kothai rakhis vaii
+07/06/26, 7:36 pm - SUDIP: Kota project upload kore6is
+07/06/26, 7:36 pm - Sanchita BWU: Ami formal anini
+07/06/26, 7:36 pm - Sanchita BWU: <Media omitted>
+07/06/26, 7:36 pm - SUDIP: Bipod theke bachte vabte hoy
+07/06/26, 7:36 pm - SUDIP: ?
+07/06/26, 7:36 pm - Sanchita BWU: Aktao korini
+07/06/26, 7:37 pm - SUDIP: Pbl banate hbe naki project er jonno
+07/06/26, 7:37 pm - Sanchita BWU: Bolbo amr kono project neii
+07/06/26, 7:37 pm - SUDIP: Korbi kota?
+07/06/26, 7:37 pm - Sanchita BWU: Kichhu korini
+07/06/26, 7:37 pm - Sanchita BWU: Kheyechi r ghumiyechi
+07/06/26, 7:37 pm - SUDIP: <Media omitted>
+07/06/26, 7:37 pm - SUDIP: Ami bolbo bhabchilm
+07/06/26, 7:37 pm - Sanchita BWU: Eta ami bolbo
+07/06/26, 7:37 pm - Sanchita BWU: Vag
+07/06/26, 7:38 pm - SUDIP: Toder meeting tai join hoye dekhbo ki hochhe tarpor mon gele porer din join hobo
+07/06/26, 7:38 pm - Sanchita BWU: 🤣🤣
+08/06/26, 12:00 pm - Srijata BWU: <Media omitted>
+08/06/26, 12:01 pm - Sanchita BWU: Jnina
+08/06/26, 12:01 pm - Sanchita BWU: Piyali mam ka jiggas korlam ans deini
+08/06/26, 12:01 pm - Srijata BWU: Kichhu bolar nei
+08/06/26, 12:01 pm - Srijata BWU: 😑
+08/06/26, 12:13 pm - Sanchita BWU: 😂
+08/06/26, 2:51 pm - Sanchita BWU: @⁨Aman⁩ kya huya vaii
+08/06/26, 2:51 pm - Sanchita BWU: Kaisa gya interview
+08/06/26, 2:51 pm - Sanchita BWU: Kya bolna para
+08/06/26, 2:52 pm - Srijata BWU: @⁨Aman⁩
+08/06/26, 2:52 pm - Aman: 9 ko h
+08/06/26, 2:52 pm - Aman: Kl
+08/06/26, 2:52 pm - Srijata BWU: Tumhara aaj hein 🙂
+08/06/26, 2:52 pm - Sanchita BWU: Aaaj hain
+08/06/26, 2:52 pm - Sanchita BWU: Dheyan se dekh
+08/06/26, 2:52 pm - Srijata BWU: <Media omitted>
+08/06/26, 2:53 pm - Sanchita BWU: Eta srijata r ringtone debo ,,,oo call korle eta bajbe amr phone e
+08/06/26, 2:53 pm - Srijata BWU: <Media omitted>
+08/06/26, 2:53 pm - Srijata BWU: @⁨Aman⁩
+08/06/26, 2:54 pm - Aman: Kl h
+08/06/26, 2:54 pm - Aman: Date kaha h??
+08/06/26, 2:54 pm - Sanchita BWU: Mam kya ruk di interview
+08/06/26, 2:54 pm - Srijata BWU: Sure?
+08/06/26, 2:54 pm - Sanchita BWU: Oh bol
+08/06/26, 2:54 pm - Aman: Mail check kro
+08/06/26, 2:54 pm - Sanchita BWU: Kab aye
+08/06/26, 2:54 pm - Aman: Bohot phele
+08/06/26, 2:54 pm - Sanchita BWU: Haan toh usme tu ajj hai
+08/06/26, 2:54 pm - Aman: Tum sab ka 10 ko h
+08/06/26, 2:54 pm - Sanchita BWU: Abhi hai
+08/06/26, 2:54 pm - Srijata BWU: <Media omitted>
+08/06/26, 2:54 pm - Srijata BWU: Tum esha se puchho
+08/06/26, 2:54 pm - Sanchita BWU: Meri 12 🫩
+08/06/26, 2:56 pm - Aman: Tum log ganja pe kr so jai🙏
+08/06/26, 2:56 pm - Sanchita BWU: 🫩
+08/06/26, 2:56 pm - Aman: Esha v boli kl h
+08/06/26, 2:56 pm - Srijata BWU: Okay
+08/06/26, 2:56 pm - Sanchita BWU: Ok
+08/06/26, 2:56 pm - Srijata BWU: Mera 10th ko hein na?
+08/06/26, 2:56 pm - Sanchita BWU: Hum ganja fukke so jate hai
+08/06/26, 2:56 pm - Aman: Ha
+08/06/26, 2:56 pm - Sanchita BWU: Fir
+08/06/26, 2:56 pm - Srijata BWU: Ok
+08/06/26, 2:56 pm - Sanchita BWU: Haan
+08/06/26, 2:56 pm - Srijata BWU: Okay
+08/06/26, 3:57 pm - Aman: Koi form submit kiya h?
+08/06/26, 4:29 pm - Aman: Attendence me SS dena h
+Or Moodle wale me jis website pe exam dete the uska marks ka SS
+08/06/26, 4:38 pm - Sanchita BWU: Kaha se website se lungi
+08/06/26, 4:38 pm - Aman: Ha
+08/06/26, 4:38 pm - Sanchita BWU: Kaise
+08/06/26, 4:38 pm - Aman: 🙂
+08/06/26, 4:39 pm - Sanchita BWU: Kaha pe
+08/06/26, 4:39 pm - Aman: Kon sa wala attendence ka ya moodle?
+08/06/26, 4:39 pm - Sanchita BWU: Hm
+08/06/26, 4:40 pm - Aman: Jis website me exam dete the usme hi check kro mil jayega kahi avji hum v nahi delhe h
+08/06/26, 4:40 pm - Sanchita BWU: Okay 👌
+08/06/26, 4:40 pm - Sanchita BWU: Superb
+08/06/26, 5:28 pm - SUDIP: 4min gap gap e join hote bol6e kno 4 min e 2 jon er interview neoya Hye gelo 🫥
+08/06/26, 5:29 pm - Sanchita BWU: Ami jante chai ki jiggas korche karor chena thakle jene bolis toh
+08/06/26, 5:30 pm - SUDIP: Vai tui toh chinis cse te 80% student ke tui toh jene janabi amader ke
+08/06/26, 5:30 pm - Sanchita BWU: 🙃ami akhn chutir mood a achi.  Kaoke chinina
+08/06/26, 5:30 pm - Sanchita BWU: Akhn
+08/06/26, 5:31 pm - SUDIP: Kichu hbena aktu ijjat er nijami hbe bes 10min
+08/06/26, 5:31 pm - SUDIP: Abar dupure formal pore 😂😂😂
+08/06/26, 5:31 pm - Sanchita BWU: <Media omitted>
+08/06/26, 5:31 pm - Sanchita BWU: Amr formal neii ekhane
+08/06/26, 5:31 pm - Sanchita BWU: Kurti pore bosa cholbe ?
+08/06/26, 5:32 pm - SUDIP: Toder meyeder toh churidar o formal <This message was edited>
+08/06/26, 5:32 pm - SUDIP: Kurtio formal toder
+08/06/26, 5:32 pm - Sanchita BWU: Bash jhinga lala hu hu korbo
+08/06/26, 5:32 pm - SUDIP: Toder sob dress e formal
+08/06/26, 5:32 pm - Sanchita BWU: <Media omitted>
+08/06/26, 5:33 pm - SUDIP: Tui formal niye chinta kor6is ki jigasa korbe seta niye chinta korisni ?
+08/06/26, 5:34 pm - SUDIP: Amader abar mam bollo 1jon 1jon join korte each student 15mins
+08/06/26, 5:35 pm - Sanchita BWU: 🤣🤣bal hobe 15 min e
+08/06/26, 5:35 pm - Sanchita BWU: Ami dekhbo 15 min kore hole 10 jon student hoi kivbae
+08/06/26, 5:36 pm - SUDIP: Oh haa 1:30 hours toh time 😂
+08/06/26, 5:38 pm - Sanchita BWU: Ami jante chaii ki question korche
+08/06/26, 5:38 pm - SUDIP: Eta deoyar kono mne ache kichu din porei dito
+08/06/26, 5:38 pm - SUDIP: <Media omitted>
+08/06/26, 5:39 pm - Sanchita BWU: 😂😂😂
+08/06/26, 5:39 pm - Sanchita BWU: Dekhei kanna pachhe
+08/06/26, 5:39 pm - Sanchita BWU: Kal result
+08/06/26, 5:39 pm - SUDIP: Name babar name tumi btech kore koto taka chao
+08/06/26, 5:39 pm - Sanchita BWU: Chagla
+08/06/26, 5:39 pm - SUDIP: Adeo company ase?
+08/06/26, 5:40 pm - SUDIP: Ager bare kau kaj peye6e?
+08/06/26, 5:40 pm - Sanchita BWU: Amro question
+08/06/26, 5:40 pm - SUDIP: Kono senior
+08/06/26, 5:40 pm - SUDIP: College theke?
+08/06/26, 5:40 pm - Sanchita BWU: Jara ei year passout hochhe kichu jon toh peyeche
+08/06/26, 5:40 pm - SUDIP: Besir vag tcs e peye6e joto sob ig e dekhalo
+08/06/26, 5:41 pm - SUDIP: Ja mne ho66e sob toh nqt diye peye6e toh college creadit nichhe kno
+08/06/26, 5:41 pm - Sanchita BWU: Otar baireo peyeche
+08/06/26, 5:41 pm - Sanchita BWU: Sunlam
+08/06/26, 5:42 pm - Sanchita BWU: Clg sob er e credit neii
+08/06/26, 5:42 pm - SUDIP: Amader 2 ta mam ar 1 ta sir ache mam ta besi boke meeting e 💀💀
+08/06/26, 5:42 pm - Sanchita BWU: 🤣
+08/06/26, 8:23 pm - Srijata BWU: Amar moodle er password ki chhilo?
+08/06/26, 8:23 pm - Sanchita BWU: BWU_bts_23_017
+08/06/26, 8:23 pm - Srijata BWU: Okiee
+09/06/26, 12:27 pm - Aman: @all result nikal gaya
+09/06/26, 12:27 pm - Aman: 2nd wala link open ho raha h
+09/06/26, 12:27 pm - Srijata BWU: Okay
+09/06/26, 12:31 pm - Sanchita BWU: Vaii pass kore gechi
+09/06/26, 12:31 pm - Sanchita BWU: Dhinka chika
+09/06/26, 12:31 pm - Aman: Kitna? 8.7?
+09/06/26, 12:31 pm - Sanchita BWU: Haan
+09/06/26, 12:32 pm - Sanchita BWU: Tera kitna
+09/06/26, 12:32 pm - Aman: 7.4 <This message was edited>
+09/06/26, 12:32 pm - Sanchita BWU: Jhut
+09/06/26, 12:32 pm - Aman: Such me
+09/06/26, 12:32 pm - Sanchita BWU: Srijata koto
+09/06/26, 12:32 pm - Aman: @⁨Srijata BWU⁩ kitna?
+09/06/26, 12:32 pm - Sanchita BWU: Sahi hai
+09/06/26, 12:32 pm - Srijata BWU: Bhalo hoyni
+09/06/26, 12:32 pm - Srijata BWU: Baad de
+09/06/26, 12:33 pm - Sanchita BWU: Koto 9.
+09/06/26, 12:33 pm - Aman: Iska 8.4 hoga
+09/06/26, 12:34 pm - Sanchita BWU: Nilay kitna
+09/06/26, 12:34 pm - Sanchita BWU: R Sudip
+09/06/26, 12:34 pm - Aman: ,
+09/06/26, 1:21 pm - Srijata BWU: @⁨Aman⁩ best of luck for the interview
+09/06/26, 1:21 pm - Srijata BWU: Full details mein bol na kya baatein huya meeting mein
+09/06/26, 1:22 pm - Aman: 3 30 ko h na
+09/06/26, 1:26 pm - Srijata BWU: Haan
+09/06/26, 1:29 pm - Aman: Ek hi cheez aata h sorry sir
+09/06/26, 3:43 pm - Srijata BWU: @⁨Aman⁩
+09/06/26, 3:43 pm - Srijata BWU: BOLLLLL
+09/06/26, 3:45 pm - Aman: Are avhi khatam hua
+09/06/26, 3:45 pm - Aman: Koi v intro nahi
+09/06/26, 3:45 pm - Aman: Sidha questions
+09/06/26, 3:45 pm - Srijata BWU: Bol ki ki dhorechhe
+09/06/26, 3:46 pm - Aman: Sirf python java c
+09/06/26, 3:46 pm - Aman: Html css
+09/06/26, 3:46 pm - Aman: Js
+09/06/26, 3:46 pm - Aman: Are pura chutiya h
+09/06/26, 3:46 pm - Srijata BWU: Wtf
+09/06/26, 3:47 pm - Srijata BWU: Voice e bol
+09/06/26, 3:47 pm - Aman: Mera main language tha cpp usko pata v tha lekin ek v nahi puchi
+09/06/26, 3:47 pm - Srijata BWU: 🙂
+09/06/26, 3:47 pm - Srijata BWU: DSA?
+09/06/26, 3:47 pm - Aman: Indexing in HTML kya hota h be
+09/06/26, 3:47 pm - Aman: Usme se kuch nahi bs naam li
+09/06/26, 3:48 pm - Only messages that mention or people share with @AI can be read by Meta. Meta can't read any other messages in this chat, as your personal messages remain end-to-end encrypted. 
+
+Messages are generated by AI. Some may be inaccurate or inappropriate. *Learn more*
+09/06/26, 3:47 pm - Srijata BWU: @⁨Meta AI⁩ what is indexing in HTML?
+09/06/26, 3:48 pm - Meta AI: Indexing in HTML is like creating a table of contents for your webpage 🌟. It's a way to help search engines like Google understand the structure and content of your page, making it more discoverable. Think of it like bookmarking important sections of a book.
+
+In HTML, you can use header tags (H1, H2, H3, etc.) to create a hierarchy of content. Search engines use these headers to index your page and display relevant results.
+
+Are you working on SEO for a project or just curious about HTML indexing?
+09/06/26, 3:49 pm - Aman: Js me closer kya hota h
+09/06/26, 3:56 pm - SUDIP: Sirf technical question e pucha?
+09/06/26, 4:02 pm - SUDIP: OOPs, DBMS, SQL kuch nahi pucha ??
+09/06/26, 4:03 pm - SUDIP: Project?
+09/06/26, 4:03 pm - Aman: Oops bs
+09/06/26, 4:03 pm - Aman: DBMS nahi boli
+09/06/26, 4:03 pm - SUDIP: Okk
+09/06/26, 5:22 pm - SUDIP: https://www.instagram.com/reel/DXcH3VwR9tF/?igsh=MWU5YmE3azUweWN1OA==
+09/06/26, 5:22 pm - SUDIP: Erokom dile hbe 😂
+09/06/26, 5:24 pm - Aman: Hum log ka camera on krwaye, or khud camera off kr ke bethe se sab
+09/06/26, 5:24 pm - SUDIP: Iye kya baat huya 🥴
+09/06/26, 5:25 pm - SUDIP: Khudka face dekhke kese baat karunga
+09/06/26, 5:25 pm - Aman: Pyali maam boli tumhara main language cpp h.. Uske baad ek sawal nahi 😂
+09/06/26, 5:25 pm - SUDIP: 😂😂😂
+09/06/26, 5:25 pm - Aman: Shirf java python
+09/06/26, 5:25 pm - Aman: Jo v unko nahi aata tha uska naam tk nahi liye
+09/06/26, 5:26 pm - SUDIP: Sirf Piyali mam puchi?
+09/06/26, 5:26 pm - Aman: Nah or thi 2
+09/06/26, 5:26 pm - Aman: Totla 3 maam
+09/06/26, 5:26 pm - SUDIP: Tinohi mam
+09/06/26, 5:27 pm - Aman: Ek bolti h mongodb kis type ka db.. Ek word me batao...
+Hum bole unstructured
+Wo boli nahi ek or term h
+Hum bole no sql
+Boli nahi or ek h
+Ab kya hi bole 😂
+09/06/26, 5:27 pm - Aman: Last me khud ans di boli flexible structure 😂
+09/06/26, 5:28 pm - SUDIP: 😂😂
+09/06/26, 5:28 pm - SUDIP: Wow what an answer 🫣🫣😂
+09/06/26, 5:29 pm - SUDIP: Mohit ka 4min me hogya group dekh ke peta chala .. 4min e kya pucha hoga
+09/06/26, 5:29 pm - Aman: Nah uska v time laga tha... Lekin uska thora thik nahi gaya h <This message was edited>
+09/06/26, 5:30 pm - SUDIP: Ooh
+09/06/26, 6:23 pm - Sanchita BWU: Hlw guys
+09/06/26, 6:23 pm - Sanchita BWU: 2 min attention please
+09/06/26, 6:23 pm - SUDIP: Biriyani banai6u naki ? Nemontron korbi?
+09/06/26, 6:23 pm - Srijata BWU: Bolun
+09/06/26, 6:23 pm - Sanchita BWU: Vag
+09/06/26, 6:23 pm - Sanchita BWU: Toder biriyani banabo
+09/06/26, 6:23 pm - Sanchita BWU: Amn news
+09/06/26, 6:23 pm - SUDIP: <Media omitted>
+09/06/26, 6:24 pm - Sanchita BWU: Jai hok Piyali mam er dewa internship ta announcement e dekhe niyechis nischoii
+09/06/26, 6:24 pm - SUDIP: Ha
+09/06/26, 6:24 pm - Sanchita BWU: Ota basically non technical
+09/06/26, 6:24 pm - Sanchita BWU: Jara non technical e intrested kindly fill korben
+09/06/26, 6:25 pm - SUDIP: Communication khub bhalo thakte bollo
+09/06/26, 6:25 pm - SUDIP: Sei level er communication kotha theke anbe lok
+09/06/26, 6:25 pm - SUDIP: <Media omitted>
+09/06/26, 6:26 pm - Sanchita BWU: R a bujhate parlei hbe
+09/06/26, 6:26 pm - Sanchita BWU: Or second baat
+09/06/26, 6:26 pm - Sanchita BWU: Industrial training nite hbe mandatory
+09/06/26, 6:27 pm - Sanchita BWU: Clg duto company suggest koreche intech r IBM 
+Intech- 30 hours ,online mood , 1000 rs 
+IBM -100 hours (offline &online 50-50), 2500
+09/06/26, 6:28 pm - Sanchita BWU: Baire thekeo korate pare chaile but information clg ka dite hbe
+09/06/26, 6:42 pm - Srijata BWU: 2500 amader dite hobe na ora debe?
+09/06/26, 6:45 pm - Sanchita BWU: Tor mundu ora kno debe
+09/06/26, 6:45 pm - Sanchita BWU: Hai re
+09/06/26, 6:45 pm - Aman: To nahi krna h final h na
+09/06/26, 6:46 pm - Sanchita BWU: Mandatory
+09/06/26, 6:46 pm - Aman: ??
+09/06/26, 6:46 pm - Aman: Such me?
+09/06/26, 6:46 pm - Aman: Waha to cv dena h na
+09/06/26, 6:46 pm - SUDIP: Firse paisa ka satyanash karna parega 🫩
+09/06/26, 6:46 pm - Aman: Mtlb ek aisa krna hoga jaruri nahi ki yahi krna h??
+09/06/26, 6:47 pm - Srijata BWU: Internship mandatory nahi industrial training mandatory hein
+09/06/26, 6:47 pm - Aman: 🙂🙂
+09/06/26, 6:48 pm - SUDIP: This message was deleted
+09/06/26, 6:48 pm - Srijata BWU: Oi son na
+09/06/26, 6:48 pm - Srijata BWU: Amar Agnirath er Internship er certificate pachhi na khuje
+09/06/26, 6:48 pm - Srijata BWU: De na
+09/06/26, 6:48 pm - Sanchita BWU: Hm
+09/06/26, 6:48 pm - Sanchita BWU: Industrial training
+09/06/26, 6:48 pm - Aman: College mail me search kr.... Agnirath.... Mil jayega
+09/06/26, 6:49 pm - Srijata BWU: De na bara
+09/06/26, 6:49 pm - Aman: Bhai bahi sab online... Ek baar me blur tick
+09/06/26, 6:49 pm - Aman: Nahi denge
+09/06/26, 6:49 pm - SUDIP: <Media omitted>
+09/06/26, 6:49 pm - Aman: @⁨Nilay⁩ kuch bolta kahe bahi h bhai
+09/06/26, 6:50 pm - SUDIP: <Media omitted>
+09/06/26, 6:50 pm - Srijata BWU: <Media omitted>
+09/06/26, 6:51 pm - Srijata BWU: @⁨Sanchita BWU⁩ moodle test er site ta ki chhilo????
+09/06/26, 6:51 pm - Aman: Nah.com use nahi krta college
+09/06/26, 6:52 pm - Sanchita BWU: Brainwareuniversity.in
+09/06/26, 6:52 pm - Aman: Are wo domain le rahi h😂
+09/06/26, 6:52 pm - Srijata BWU: Hamara college bech raha hein apna domain
+09/06/26, 6:53 pm - Aman: Yaha khud ka domain nahi le pa rahe🥲.... Card ka kuch error de raha h
+09/06/26, 6:54 pm - SUDIP: Mar point er jonno ki korbo ?
+09/06/26, 6:54 pm - Sanchita BWU: Neche de
+09/06/26, 6:54 pm - SUDIP: Nachle 45 dibe?
+09/06/26, 6:55 pm - Aman: Iss baar tech fest me hackathon me le lena
+09/06/26, 6:55 pm - Aman: Nilay ke sath usko bohot experience h iss sav ka
+09/06/26, 6:56 pm - Srijata BWU: Name kya tha uss larki ka?
+09/06/26, 6:56 pm - Srijata BWU: Nandini shayad na?
+09/06/26, 6:56 pm - Srijata BWU: @⁨Nilay⁩ ???
+09/06/26, 6:57 pm - Aman: 
+09/06/26, 6:58 pm - Sanchita BWU: Mai nhi kar rahi hu
+09/06/26, 6:58 pm - Srijata BWU: Dono hi nahi khati.... khalo
+09/06/26, 6:58 pm - Aman: Tumko milega v nahi
+09/06/26, 6:58 pm - Aman: Thik h thik h... Gareebo ka khana kaha pasand aayega
+09/06/26, 6:59 pm - Srijata BWU: Yup
+09/06/26, 7:00 pm - Sanchita BWU: Chahiye vi nhi
+09/06/26, 7:00 pm - Sanchita BWU: 😑
+10/06/26, 2:11 pm - Srijata BWU: Ajke adeou amar hobe to?
+10/06/26, 2:11 pm - Srijata BWU: Group e to kichhu e likhchhe na
+10/06/26, 2:13 pm - Sanchita BWU: Na hole ghumiye por
+10/06/26, 2:13 pm - Srijata BWU: Gym jabo
+10/06/26, 2:13 pm - Sanchita BWU: Chole ja
+10/06/26, 2:13 pm - Sanchita BWU: Interview na dileo hbe
+10/06/26, 2:14 pm - Sanchita BWU: Gym important
+10/06/26, 2:16 pm - Srijata BWU: 🙂🙏🏻
+10/06/26, 2:26 pm - Aman: 2 30 se h
+10/06/26, 2:52 pm - SUDIP: Call kore Dakbe naki 🫥
+10/06/26, 2:53 pm - SUDIP: Kau ghumi porle dupure ghum theke tule interview nebe 🫥🫥🫥
+10/06/26, 3:03 pm - Sanchita BWU: @⁨Srijata BWU⁩ ki question korlo vaii
+10/06/26, 3:04 pm - Srijata BWU: Bekaar
+10/06/26, 3:04 pm - Srijata BWU: Bekaaaar
+10/06/26, 3:04 pm - Srijata BWU: Indentation ki
+10/06/26, 3:04 pm - Srijata BWU: List vs tuple
+10/06/26, 3:04 pm - Srijata BWU: SQL e ACID property
+10/06/26, 3:05 pm - Srijata BWU: WHERE vs HAVING clause
+10/06/26, 3:05 pm - Srijata BWU: Supervised vs unsupervised learning
+10/06/26, 3:06 pm - Sanchita BWU: 🫩
+10/06/26, 3:07 pm - Sanchita BWU: Amr kno echhe korche na interview dite
+10/06/26, 3:07 pm - Sanchita BWU: Giyei bolbo no sir, sorry sir
+10/06/26, 3:07 pm - Srijata BWU: Abee amake bolchhe tumi form fillup koroni
+10/06/26, 3:07 pm - Srijata BWU: Gotokaalke e korlam
+10/06/26, 3:08 pm - Sanchita BWU: Ami ajke kore debo baba
+10/06/26, 3:08 pm - Sanchita BWU: Chagla clg
+10/06/26, 3:08 pm - Sanchita BWU: Faltu
+10/06/26, 3:08 pm - Sanchita BWU: Dhoper choper
+10/06/26, 3:09 pm - Srijata BWU: Bhalo lage na
+10/06/26, 3:09 pm - Sanchita BWU: Tui gym ja
+10/06/26, 3:09 pm - Sanchita BWU: Kaj e debe
+12/06/26, 5:00 pm - SUDIP: @⁨Sanchita BWU⁩ ki dhorlo??
+12/06/26, 5:14 pm - Sanchita BWU: Dhulo amke dhulo
+12/06/26, 5:14 pm - Sanchita BWU: 35 mins dhore
+12/06/26, 5:14 pm - Sanchita BWU: Srijata chilo taii benche gelam
+12/06/26, 5:14 pm - SUDIP: Tar toh kal 6ilo
+12/06/26, 5:14 pm - Sanchita BWU: Oo amr barite
+12/06/26, 5:15 pm - SUDIP: Answer bole di66ilo nki
+12/06/26, 5:15 pm - SUDIP: Bujhe ge6i kal ki hbe 💀💀
+12/06/26, 5:16 pm - Sanchita BWU: Hm
+12/06/26, 5:16 pm - Sanchita BWU: Sathe kaoke niye bosis nahole ses
+12/06/26, 5:17 pm - SUDIP: Screen share korte bol6e?
+12/06/26, 5:17 pm - Sanchita BWU: Nah
+12/06/26, 5:17 pm - Sanchita BWU: Oi sob bolbe na
+12/06/26, 5:18 pm - SUDIP: Thole toh mota moti Hye jbe
+12/06/26, 5:22 pm - Sanchita BWU: Hm kor
+13/06/26, 9:49 am - Sanchita BWU: @⁨SUDIP⁩ best of luck bro 🤞
+13/06/26, 9:49 am - SUDIP: <Media omitted>
+13/06/26, 9:50 am - Srijata BWU: <Media omitted>
+13/06/26, 9:52 am - SUDIP: Laptop er pechone hat kibhabe rakhbo
+13/06/26, 9:53 am - Srijata BWU: <Media omitted>
+13/06/26, 9:53 am - SUDIP: Bhogoban achen .  Amake thik bachaben
+13/06/26, 9:53 am - Sanchita BWU: Amn bole keo hoina
+13/06/26, 9:53 am - Sanchita BWU: Nijekei bansh khete hbe
+13/06/26, 9:53 am - SUDIP: <Media omitted>
+13/06/26, 10:13 am - SUDIP: https://www.instagram.com/reel/DZFwGkxygfH/?igsh=MWFsNXliNnZvcWttZQ==
+13/06/26, 10:14 am - SUDIP: Ki sob asche 🫥
+13/06/26, 10:14 am - Srijata BWU: Tor khetre o same hobe
+13/06/26, 10:14 am - Srijata BWU: Ora kintu intro nichhe na
+13/06/26, 10:15 am - SUDIP: 💀💀💀
+13/06/26, 10:24 am - Sanchita BWU: Hm
+13/06/26, 8:53 pm - Srijata BWU: <Media omitted>
+13/06/26, 8:54 pm - SUDIP: Vablam gari kin6u hyto 🫩
+13/06/26, 8:55 pm - Srijata BWU: If you need a "bike" ride, contact Sanchita
+13/06/26, 8:56 pm - Srijata BWU: <Media omitted>
+13/06/26, 8:56 pm - SUDIP: <Media omitted>
+13/06/26, 8:56 pm - Srijata BWU: <Media omitted>
+13/06/26, 8:56 pm - Sanchita BWU: <Media omitted>
+14/06/26, 12:14 pm - Srijata BWU: @⁨SUDIP⁩ ha re sudip tor kalke interview kemon gelo janali na to?
+14/06/26, 12:14 pm - Srijata BWU: Bol
+14/06/26, 12:16 pm - SUDIP: Khub bhalo
+14/06/26, 12:17 pm - Srijata BWU: Details bol
+14/06/26, 12:17 pm - SUDIP: Past is past
+14/06/26, 12:17 pm - SUDIP: Oto mne nai vai
+14/06/26, 12:17 pm - Srijata BWU: 50lpa pakka
+14/06/26, 12:18 pm - SUDIP: Hmm bollo toh otai ki kore janli
+14/06/26, 12:18 pm - Srijata BWU: Ami e question set baniyechhilam tai
+14/06/26, 12:18 pm - SUDIP: <Media omitted>
+14/06/26, 12:19 pm - Aman: Lekin bhai wo teri bandi ka kya??
+14/06/26, 12:20 pm - Srijata BWU: Seraaaa seraa
+14/06/26, 12:20 pm - SUDIP: <Media omitted>
+14/06/26, 12:21 pm - Aman: https://youtube.com/shorts/IsyUKVWNJTM?si=kvxAVBgqWQvPcdZB
+17/06/26, 10:10 am - Aman: https://youtube.com/shorts/OX4Tu7semWA?si=7qHX1UbACuKDK5d4
+28/06/26, 7:48 pm - Srijata BWU: Dear all
+Please find below the details regarding the 2027 pass-out batch.
+
+We kindly request the department to circulate this information among all students of the 2027 pass-out batch and advise them to take the NCET test scheduled on Saturday, 04/07/2026, ensuring they have proper internet connectivity.
+
+The test link will be shared one hour before the commencement of the test, allowing students sufficient time to register and appear for the examination.
+
+We have also shared, in the email, the list of clients associated with MyAnatomy. Based on the scores secured by the students, they will be invited to attend interviews as and when the requirements are shared.
+
+Additionally, we are sharing the structure of the test, on the basis of which the students will be assessed. The total duration of the test will be 2 hours and 20 minutes.
+
+
+We are glad to share our official Invitation from MyAnatomy, welcoming students from your esteemed institution to take part in NCET  2027, A National level skill-based assessment for the students graduating in the year 2027 from the Techno-management Institutes/universities PAN India.
+
+Exciting news! N.C.E.T - National Competence & Employability Test - is back for its 6th consecutive year. This standardized test, administered by MyAnatomy’s team of experts and partnering entities, is designed to identify and enhance the employability competencies of your students.
+
+Over the past years, N.C.E.T has witnessed remarkable success, with  participation of 50,00,000+ students across 4000+ colleges and 500+ employers endorsed and hired 1,00,000+ students in the form of interns and full time employees.
+
+Throughout this period, the pattern, syllabus and the difficulty level of N.C.E.T has undergone various levels of scrutiny by the subject matter and tech experts from the administering organizations.
+28/06/26, 7:48 pm - Srijata BWU: Eta ki mandatory?
+28/06/26, 7:49 pm - Aman: Nah
+28/06/26, 7:50 pm - Srijata BWU: Okay

@@ -4,11 +4,11 @@ import styles
 
 
 def render(df):
-    """Chapter 2: Chat Awards — Steam-style achievement unlocks."""
+    """Chapter 5: Awards."""
 
-    styles.render_chapter_divider("02", "Chat Awards")
+    styles.render_chapter_divider("05", "Awards")
 
-    styles.render_section_header("🏆", "Achievement Unlocked",
+    styles.render_section_header("🏆", "Group Awards",
                                  "Recognition for the group's most notable chat personalities")
 
     awards = chat_award.chat_awards(df)

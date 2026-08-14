@@ -1,3 +1,7 @@
+import streamlit as st
+
+
+@st.cache_data(show_spinner=False)
 def response_time_analysis(df):
 
     # sort chronologically

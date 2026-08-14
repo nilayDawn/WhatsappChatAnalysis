@@ -67,7 +67,7 @@ def render(df):
         <span style="font-size:48px;">{badge.split()[0]}</span>
         <div>
             <div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:{color};margin-bottom:6px;">
-                RELATIONSHIP CONSISTENCY
+                PEAK STREAK RECORD
             </div>
             <div style="font-size:24px;font-weight:900;color:#f1f5f9;margin-bottom:4px;">{badge}</div>
             <div style="font-size:14px;color:#94a3b8;font-style:italic;">{desc}</div>
