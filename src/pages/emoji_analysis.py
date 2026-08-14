@@ -20,7 +20,7 @@ def render(selected_user, df):
                 "📊 Emoji Count Table</div>",
                 unsafe_allow_html=True,
             )
-            st.dataframe(emoji_df, use_container_width=True)
+            st.dataframe(emoji_df, width="stretch")
 
         with col_emo2:
             top = emoji_df.head(10).copy()
@@ -36,6 +36,6 @@ def render(selected_user, df):
                 )
                 fig.update_traces(textposition="inside", textinfo="percent+label")
                 styles.style_plotly_fig(fig)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
     else:
         st.info("No emojis found. This chat might be empty or entirely media files.")

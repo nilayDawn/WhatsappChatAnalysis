@@ -51,7 +51,7 @@ def render(selected_user, df):
                 )
             fig.update_layout(yaxis={"categoryorder": "total ascending"})
             styles.style_plotly_fig(fig)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         else:
             st.info("No words found. This chat might be empty or entirely media files.")
 
@@ -62,4 +62,4 @@ def render(selected_user, df):
             "📋 Top 50 Most Common Phrases</div>",
             unsafe_allow_html=True,
         )
-        st.dataframe(all_words_df, use_container_width=True)
+        st.dataframe(all_words_df, width="stretch")

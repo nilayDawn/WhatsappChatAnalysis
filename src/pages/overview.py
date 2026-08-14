@@ -59,11 +59,11 @@ def render(selected_user, df):
             )
             fig.update_layout(coloraxis_showscale=False)
             styles.style_plotly_fig(fig)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         with col_busy2:
             st.markdown(
                 "<div style='font-weight:700;color:#8B5CF6;font-size:1.05rem;margin-bottom:10px;padding-top:10px;'>"
                 "📋 Contribution Breakdown</div>",
                 unsafe_allow_html=True,
             )
-            st.dataframe(new_df, use_container_width=True)
+            st.dataframe(new_df, width="stretch")

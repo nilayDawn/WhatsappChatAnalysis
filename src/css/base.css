@@ -37,8 +37,13 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"], [data
   font-family: 'Inter', sans-serif !important;
 }
 
-.material-symbols-outlined, .material-icons, span[class*="material"] {
-  font-family: 'Material Symbols Outlined' !important;
+/* Protect Streamlit icon elements and Material icons from being overridden */
+.material-symbols-outlined, 
+.material-icons, 
+span[class*="material"], 
+[data-testid="stHeader"] button *, 
+[data-testid="stSidebar"] button * {
+  font-family: 'Material Symbols Outlined', 'Material Icons' !important;
 }
 
 html,body,[data-testid="stAppViewContainer"]{background:linear-gradient(135deg,var(--bg),var(--bg2),var(--bg3))!important;color:var(--text)!important}

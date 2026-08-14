@@ -93,7 +93,7 @@ def render(df):
         title="Night Activity Pattern (aka The Insomnia Grid)",
     )
     styles.style_plotly_fig(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # ── Tables ──
     col_p, col_l = st.columns(2)
@@ -106,11 +106,11 @@ def render(df):
         personality_df = pd.DataFrame(
             list(night["personalities"].items()), columns=["User", "Diagnosis"]
         )
-        st.dataframe(personality_df, use_container_width=True)
+        st.dataframe(personality_df, width="stretch")
 
     with col_l:
         st.markdown(
             "<div style='font-weight:700;color:#8B5CF6;font-size:1.05rem;margin-bottom:10px;'>"
             "🏆 The Hall of Shame (Most Midnight Texts)</div>", unsafe_allow_html=True,
         )
-        st.dataframe(night["leaderboard"], use_container_width=True)
+        st.dataframe(night["leaderboard"], width="stretch")

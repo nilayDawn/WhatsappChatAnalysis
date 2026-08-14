@@ -28,7 +28,7 @@ def render(selected_user, df):
             )
             monthly_fig.update_layout(xaxis_tickangle=-45)
             styles.style_plotly_fig(monthly_fig)
-            st.plotly_chart(monthly_fig, use_container_width=True)
+            st.plotly_chart(monthly_fig, width="stretch")
         else:
             st.info("No timeline data available.")
 
@@ -46,7 +46,7 @@ def render(selected_user, df):
             )
             daily_fig.update_layout(xaxis_tickangle=-45)
             styles.style_plotly_fig(daily_fig)
-            st.plotly_chart(daily_fig, use_container_width=True)
+            st.plotly_chart(daily_fig, width="stretch")
         else:
             st.info("No daily data available.")
 
@@ -90,7 +90,7 @@ def render(selected_user, df):
                 coloraxis_showscale=False, xaxis_tickangle=-45
             )
             styles.style_plotly_fig(busy_day_fig)
-            st.plotly_chart(busy_day_fig, use_container_width=True)
+            st.plotly_chart(busy_day_fig, width="stretch")
         else:
             st.info("No day activity data available.")
 
@@ -125,7 +125,7 @@ def render(selected_user, df):
                 coloraxis_showscale=False, xaxis_tickangle=-45
             )
             styles.style_plotly_fig(busy_month_fig)
-            st.plotly_chart(busy_month_fig, use_container_width=True)
+            st.plotly_chart(busy_month_fig, width="stretch")
         else:
             st.info("No month activity data available.")
 
@@ -145,6 +145,6 @@ def render(selected_user, df):
             heatmap_fig.update_yaxes(type='category')
 
             styles.style_plotly_fig(heatmap_fig)
-            st.plotly_chart(heatmap_fig, use_container_width=True)
+            st.plotly_chart(heatmap_fig, width="stretch")
         else:
             st.info("No weekly heatmap data available.")

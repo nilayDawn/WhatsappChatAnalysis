@@ -45,7 +45,7 @@ def render(df):
         marker=dict(size=6, line=dict(width=1, color="#F59E0B")),
     )
     styles.style_plotly_fig(fig)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # ── Relationship badge ──
     days = streak["longest_streak"]

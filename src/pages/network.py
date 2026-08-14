@@ -66,11 +66,11 @@ def render(df):
 
     # Glowing edges
     nx.draw_networkx_edges(
-        G, pos, width=[w * 1.5 for w in widths], arrows=False,
+        G, pos, width=[w * 1.5 for w in widths], arrows=True, arrowsize=10, arrowstyle="-|>",
         edge_color="#8B5CF6", alpha=0.15, connectionstyle="arc3,rad=0.15", ax=ax,
     )
     nx.draw_networkx_edges(
-        G, pos, width=widths, arrows=True, arrowsize=18,
+        G, pos, width=widths, arrows=True, arrowsize=18, arrowstyle="-|>",
         edge_color="#c4b5fd", alpha=0.7, connectionstyle="arc3,rad=0.15", ax=ax,
     )
 
@@ -99,5 +99,5 @@ def render(df):
         )
         st.dataframe(
             edges.sort_values("Replies", ascending=False),
-            use_container_width=True,
+            width="stretch",
         )

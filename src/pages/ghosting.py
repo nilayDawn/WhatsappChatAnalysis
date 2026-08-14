@@ -134,7 +134,7 @@ def render(df):
     
 
     styles.render_section_header("🤝", "Worst Ghosting Pairs", "Who ignores whom the most frequently")
-    st.dataframe(ghost["pair_stats"], use_container_width=True)
+    st.dataframe(ghost["pair_stats"], width="stretch")
 
     with st.expander("📋 View Complete Ghosting Evidence", expanded=False):
-        st.dataframe(ghost["verification"], use_container_width=True, height=450)
+        st.dataframe(ghost["verification"], width="stretch", height=450)

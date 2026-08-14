@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import re
 
 CSS_DIR = os.path.join(os.path.dirname(__file__), "css")
 
@@ -8,22 +9,38 @@ def _read_css(filename):
     path = os.path.join(CSS_DIR, filename)
     if os.path.exists(path):
         with open(path, "r") as f:
-            return f.read()
+            content = f.read()
+            # Strip CSS comments
+            content = re.sub(r'/\*[\s\S]*?\*/', '', content)
+            # Remove blank lines to prevent Markdown parser from breaking out of HTML <style> block
+            lines = [line for line in content.splitlines() if line.strip()]
+            return "\n".join(lines)
     return ""
+
+
+FONT_LINKS = """<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">"""
 
 
 def load_css():
     """Injects the Chat Rewind premium design system CSS."""
     base = _read_css("base.css")
     fix = _read_css("fix_file_uploader.css")
-    st.markdown(f"<style>{base}{fix}</style>", unsafe_allow_html=True)
+    combined = f"{FONT_LINKS}<style>\n{base}\n{fix}\n</style>"
+    if hasattr(st, "html"):
+        st.html(combined)
+    else:
+        st.markdown(combined, unsafe_allow_html=True)
 
 
 def load_page_css(page_name):
     """Loads page-specific CSS on top of base."""
     css = _read_css(f"{page_name}.css")
     if css:
-        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+        combined = f"<style>\n{css}\n</style>"
+        if hasattr(st, "html"):
+            st.html(combined)
+        else:
+            st.markdown(combined, unsafe_allow_html=True)
 
 
 def style_plotly_fig(fig, title=None):

@@ -127,12 +127,12 @@ if st.session_state["uploaded_file"] is None or not st.session_state["show_analy
         </div>
         """, unsafe_allow_html=True)
         uploaded = st.file_uploader(
-            "", type=["txt"],
+            "Upload WhatsApp Chat File", type=["txt"],
             key="initial_uploader", label_visibility="collapsed",
         )
         if uploaded is not None:
             st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
-            if st.button("Start Analysis", use_container_width=True):
+            if st.button("Start Analysis", width="stretch"):
                 st.session_state["uploaded_file"] = uploaded
                 st.session_state["show_analysis"] = True
                 st.rerun()
@@ -269,7 +269,7 @@ with st.sidebar:
         data=html_report_data,
         file_name=f"chat_rewind_report_{selected_user}.html",
         mime="text/html",
-        use_container_width=True,
+        width="stretch",
         key="sidebar_download_html"
     )
 
@@ -367,7 +367,7 @@ if next_idx < len(ALL_CHAPTERS):
             if st.button(
                 f"✨ Unlock: {next_ch['label']}",
                 key="unlock_next_chapter",
-                use_container_width=True,
+                width="stretch",
             ):
                 st.session_state["unlocked_up_to"] = next_idx
                 st.rerun()
@@ -393,7 +393,7 @@ else:
             data=html_report_data,
             file_name=f"chat_rewind_report_{selected_user}.html",
             mime="text/html",
-            use_container_width=True,
+            width="stretch",
             key="completion_download_html"
         )
     with col_dl2:
@@ -403,7 +403,7 @@ else:
             data=json_data,
             file_name=f"chat_rewind_data_{selected_user}.json",
             mime="application/json",
-            use_container_width=True,
+            width="stretch",
             key="completion_download_json"
         )
 
