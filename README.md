@@ -6,6 +6,17 @@ Discover the hidden story inside your WhatsApp chats. **Chat Rewind** transforms
 
 🔗 **Live App Link(Render):** [https://whatsapp-chat-analyzer-by-nilaydawn.onrender.com](https://whatsapp-chat-analyzer-by-nilaydawn.onrender.com)
 
+## 🌐 Live Demo
+
+Open directly in browser (recommended for best rendering):
+
+<a><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg"></a>
+
+If UI looks broken in Chrome:
+1. Open DevTools → right-click refresh → **Empty Cache and Hard Reload**
+2. Or go to `chrome://settings/content/all` → search your Streamlit domain → **Clear data**
+3. Reopen the direct link above
+
 ---
 
 ## ✨ Features & Functionality
