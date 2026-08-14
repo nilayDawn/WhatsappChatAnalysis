@@ -28,7 +28,7 @@
 }
 
 /* Set global font-family on standard containers */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"], [data-testid="stHeader"] {
+html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"], [data-testid="stHeader"], button {
   font-family: 'Inter', sans-serif !important;
 }
 
@@ -40,9 +40,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"], [data
 /* Protect Streamlit icon elements and Material icons from being overridden */
 .material-symbols-outlined, 
 .material-icons, 
-span[class*="material"], 
-[data-testid="stHeader"] button *, 
-[data-testid="stSidebar"] button * {
+span[class*="material"],
+[data-testid="stIcon"],
+[data-testid="stSidebarHeader"] button * {
   font-family: 'Material Symbols Outlined', 'Material Icons' !important;
 }
 
